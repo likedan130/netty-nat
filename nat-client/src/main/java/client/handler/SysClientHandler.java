@@ -5,6 +5,7 @@ import client.handler.Processor.HeartbeatProcessor;
 import client.handler.Processor.LoginProcessor;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
+import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -43,7 +44,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
-        byteBuf.writeShort(13 + 1 + passwordLen);
+        byteBuf.writeShort(1 + passwordLen + 1);
         byteBuf.writeByte(passwordLen);
         byteBuf.writeBytes(password);
         //计算校验和
@@ -52,6 +53,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
             vc = vc + (byteVal & 0xFF);
         }
         byteBuf.writeByte(vc);
+        System.out.println(ByteUtil.toHexString(BufUtil.getArray(byteBuf)));
         ctx.writeAndFlush(byteBuf);
     }
 

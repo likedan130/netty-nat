@@ -10,6 +10,8 @@ package core.frame.loader;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.logging.log4j.*;
@@ -34,14 +36,17 @@ public class PropertiesLoader extends AbstractLoader{
 	public void load(String path) {
 		try{
 			Properties properties = new Properties();
-	        FileInputStream in = new FileInputStream(new File(path+File.separator+"properties.properties"));
-	        properties.load(in);
-	        for(Object key : properties.keySet()){
-	        	PropertiesCache.getInstance().getProps().putIfAbsent(key.toString(), properties.get(key).toString());
-	        }
+            //读取文件
+            List<File> fileList = readFiles(path);
+            for (File file : fileList) {
+                FileInputStream in = new FileInputStream(file);
+                properties.load(in);
+                for(Object key : properties.keySet()){
+                    PropertiesCache.getInstance().getProps().putIfAbsent(key.toString(), properties.get(key).toString());
+                }
+            }
 	        //加载完成后，启动一个FileWatchService来对文件修改状态进行监控，如果监听到文件修改，则重新加载修改后的文件内容
-			FileWatchService service = new FileWatchService();
-			new Thread(() -> service.addWatcher(path, this)).start();
+            addWatch(path);
 		}catch(Exception e){
 			e.printStackTrace();
 			logger.error(e);
@@ -50,7 +55,52 @@ public class PropertiesLoader extends AbstractLoader{
 
 	@Override
 	public void reload(String path) {
-		load(path);		
+        try{
+            Properties properties = new Properties();
+            //读取文件
+            File file = new File(path);
+            if (!file.exists()) {
+                return;
+            }
+            FileInputStream in = new FileInputStream(file);
+            properties.load(in);
+            for(Object key : properties.keySet()){
+                PropertiesCache.getInstance().getProps().putIfAbsent(key.toString(), properties.get(key).toString());
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            logger.error(e);
+        }
 	}
+
+    /**
+     * 添加监控
+     * @param path
+     */
+    public void addWatch(String path) {
+        FileWatchService service = new FileWatchService();
+        new Thread(() -> service.addWatcher(path, this)).start();
+    }
+
+    /**
+     * 读取指定文件
+     * @param path
+     * @return
+     */
+    public List<File> readFiles(String path) {
+        List<File> fileList =  new ArrayList<>();
+        try{
+            File dir = new File(path);
+            for (File file : dir.listFiles()) {
+                if (file.getName().endsWith(".properties")) {
+                    fileList.add(file);
+                }
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            System.out.println(e.getStackTrace());
+        }
+        return fileList;
+    }
 
 }
