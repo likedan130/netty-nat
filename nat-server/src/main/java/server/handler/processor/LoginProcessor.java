@@ -43,12 +43,14 @@ public class LoginProcessor implements Processor {
             ProxyServer proxyServer = new ProxyServer();
             proxyServer.init();
             proxyServer.start();
+            System.out.println("启动代理服务（ProxyServer）成功");
         }
         //启动内部服务
         if (!Server.internalServer.isStarted()) {
             InternalServer internalServer = new InternalServer();
             internalServer.init();
             internalServer.start();
+            System.out.println("启动代理服务（InternalServer）成功");
         }
         //响应客户端
         ByteBuf byteBuf = Unpooled.buffer();
@@ -56,7 +58,7 @@ public class LoginProcessor implements Processor {
         Long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
-        byteBuf.writeShort(13 + 1 + 1);
+        byteBuf.writeShort(1 + 1);
         byteBuf.writeByte(FrameConstant.RESULT_SUCCESS);
         //计算校验和
         int vc = 0;
@@ -64,9 +66,11 @@ public class LoginProcessor implements Processor {
             vc = vc + (byteVal & 0xFF);
         }
         byteBuf.writeByte(vc);
+        //给channel加个监听，如果响应成功发送建立连接池命令
         ctx.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
+                System.out.println("成功发送连接池命令");
                 if (future.isSuccess()) {
                     //立刻发送连接池的建立命令给客户端
                     ByteBuf byteBuf = Unpooled.buffer();
@@ -74,7 +78,7 @@ public class LoginProcessor implements Processor {
                     Long serial = System.currentTimeMillis();
                     byteBuf.writeLong(serial);
                     byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
-                    byteBuf.writeShort(13 + 1 + 1);
+                    byteBuf.writeShort(1 + 1);
                     byteBuf.writeByte(10);//连接池数量
                     //计算校验和
                     int vc = 0;
@@ -82,10 +86,9 @@ public class LoginProcessor implements Processor {
                         vc = vc + (byteVal & 0xFF);
                     }
                     byteBuf.writeByte(vc);
+                    ctx.writeAndFlush(byteBuf);
                 }
             }
         });
-
-
     }
 }

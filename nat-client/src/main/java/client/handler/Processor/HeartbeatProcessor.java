@@ -20,7 +20,7 @@ public class HeartbeatProcessor implements Processor {
         Long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_HEARTBEAT.getCmd());
-        byteBuf.writeShort(13 + 1);
+        byteBuf.writeShort(1);
         //计算校验和
         int vc = 0;
         for (byte byteVal : BufUtil.getArray(byteBuf)) {

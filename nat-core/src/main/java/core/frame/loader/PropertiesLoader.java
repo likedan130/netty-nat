@@ -39,9 +39,9 @@ public class PropertiesLoader extends AbstractLoader{
 	        for(Object key : properties.keySet()){
 	        	PropertiesCache.getInstance().getProps().putIfAbsent(key.toString(), properties.get(key).toString());
 	        }
-	        //加载完成后，启动一个FileWatchService来对文件修改状态进行监控，如果监听到文件修改，则重新加载修改后的文件内容
-			FileWatchService service = new FileWatchService();
-			new Thread(() -> service.addWatcher(path, this)).start();
+//	        //加载完成后，启动一个FileWatchService来对文件修改状态进行监控，如果监听到文件修改，则重新加载修改后的文件内容
+//			FileWatchService service = new FileWatchService();
+//			new Thread(() -> service.addWatcher(path, this)).start();
 		}catch(Exception e){
 			e.printStackTrace();
 			logger.error(e);

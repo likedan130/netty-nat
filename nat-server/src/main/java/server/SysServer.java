@@ -33,7 +33,7 @@ public class SysServer extends Server {
         ChannelInitializer<SocketChannel> channelInit = new ChannelInitializer<SocketChannel>(){
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(65535,9,2))
+                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(65535,10,2))
                         .addLast(new IdleStateHandler(0, 0, 10))
                         .addLast(new SysServerhandler());
             }

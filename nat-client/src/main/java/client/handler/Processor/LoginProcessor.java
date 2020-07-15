@@ -1,11 +1,8 @@
 package client.handler.Processor;
 
-import client.InternalClient;
 import core.constant.FrameConstant;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-
-import java.util.Objects;
 
 /**
  * @Author wneck130@gmail.com

@@ -6,7 +6,6 @@ import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
-import server.Server;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +43,10 @@ public class ServerChannelGroup {
 
     public static void addSysChannel(Channel channel) {
         sysChannel.put("Sys", channel);
+    }
+
+    public static Map<String, Channel> getSysChannel() {
+        return sysChannel;
     }
 
     public static void addProxyChannel(Channel channel) {

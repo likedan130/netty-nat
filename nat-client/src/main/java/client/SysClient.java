@@ -4,13 +4,9 @@ import core.cache.PropertiesCache;
 import core.frame.loader.PropertiesLoader;
 import client.handler.*;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
 
@@ -33,12 +29,13 @@ public class SysClient extends Client {
      * @throws Exception
      */
     public void start() throws Exception{
+        group = new NioEventLoopGroup();
         client.group(group)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel ch) {
-                        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(65535,9,2))
+                        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(65535,10,2))
                                 .addLast(new IdleStateHandler(0, 0, 10))
                                 //加入自定义的handler
                                 .addLast(new SysClientHandler());

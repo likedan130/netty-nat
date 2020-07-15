@@ -1,6 +1,5 @@
 package client.handler;
 
-import client.group.ClientChannelGroup;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

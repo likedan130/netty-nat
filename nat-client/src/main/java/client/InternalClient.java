@@ -1,16 +1,12 @@
 package client;
 
 import core.cache.PropertiesCache;
-import core.frame.loader.PropertiesLoader;
 import client.handler.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
 
 /**
  * @Author wneck130@gmail.com
@@ -27,6 +23,7 @@ public class InternalClient extends Client {
      * @throws Exception
      */
     public void start(int num) throws Exception{
+        group = new NioEventLoopGroup();
         //定义线程组，处理读写和链接事件
         Bootstrap client = new Bootstrap();
         client.group(group)
@@ -42,7 +39,7 @@ public class InternalClient extends Client {
             ChannelFuture future = client.connect(cache.get("internal.host"),
                     cache.getInt("internal.port")).sync();
             //阻塞主进程直到连接断开
-            future.channel().closeFuture().sync();
+//            future.channel().closeFuture().sync();
         }
     }
 }

@@ -3,7 +3,6 @@ package server;
 import core.cache.PropertiesCache;
 import core.frame.loader.PropertiesLoader;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -38,12 +37,13 @@ public class InternalServer extends Server{
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(cache.getInt("internal.server.port")).sync();
-        System.out.println("DeviceServer start listen on port " + cache.get("internal.server.port") + "......");
-        f.channel().closeFuture().sync();
+        System.out.println("DeviceServer start internal-server on port " + cache.getInt("internal.server.port") + "......");
+//        f.channel().closeFuture().sync();
     }
 
     @Override
     public boolean isStarted() {
+        //判端TCP连接是否活跃（channel()不为空 && 连接活跃）
         if (!Objects.equals(null, f) && f.channel().isActive()) {
             return true;
         }

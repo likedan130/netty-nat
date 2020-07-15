@@ -3,7 +3,6 @@ package server;
 import core.cache.PropertiesCache;
 import core.frame.loader.PropertiesLoader;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -38,8 +37,8 @@ public class ProxyServer extends Server {
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(cache.getInt("proxy.server.port")).sync();
-        System.out.println("DeviceServer start listen on port " + cache.get("proxy.server.port") + "......");
-        f.channel().closeFuture().sync();
+        System.out.println("DeviceServer start proxy-server on port " + cache.getInt("proxy.server.port") + "......");
+//        f.channel().closeFuture().sync();
     }
 
     @Override
