@@ -8,12 +8,14 @@ import server.handler.processor.ConnectionPoolProcessor;
 import server.handler.processor.HeartbeatProcessor;
 import server.handler.processor.LoginProcessor;
 
+import java.util.Date;
+
 public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         byte cmd = msg.getByte(9);
-        System.out.println("接收到客户端发送的命令："+cmd);
+
         switch (cmd) {
             //接入命令
             case 0x01:
@@ -21,7 +23,9 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
                 break;
             //心跳命令
             case 0x02:
+                System.out.println("接收到客户心跳："+System.currentTimeMillis()/1000);
                 new HeartbeatProcessor().process(ctx, msg);
+//                new HeartbeatProcessor().timeoutDetection(ctx);
                 break;
             //建立连接池命令
             case 0x03:
@@ -38,6 +42,7 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("客户端停止时间是："+new Date());
         super.channelInactive(ctx);
     }
 }

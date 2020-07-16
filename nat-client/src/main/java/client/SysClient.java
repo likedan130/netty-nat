@@ -1,14 +1,18 @@
 package client;
 
+import client.reconnection.AbstractConnectionWatchdog;
 import core.cache.PropertiesCache;
 import core.frame.loader.PropertiesLoader;
 import client.handler.*;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelInitializer;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.HashedWheelTimer;
 
 /**
  * @Author wneck130@gmail.com
@@ -17,35 +21,59 @@ import io.netty.handler.timeout.IdleStateHandler;
 public class SysClient extends Client {
 
     private static Bootstrap client = new Bootstrap();
+    private String host;
+    private int port;
 
     public void init() {
         //加载配置文件
         new PropertiesLoader().load(System.getProperty("user.dir"));
         cache = PropertiesCache.getInstance();
+        host = cache.get("internal.host");
+        port = cache.getInt("internal.port");
     }
 
-    /**
-     * 启动一条内部的连接
-     * @throws Exception
-     */
-    public void start() throws Exception{
-        group = new NioEventLoopGroup();
-        client.group(group)
-                .channel(NioSocketChannel.class)
-                .handler(new ChannelInitializer<NioSocketChannel>() {
+    protected final HashedWheelTimer timer = new HashedWheelTimer();
+
+    //启动一条内部连接
+    public void start() throws Exception {
+
+        EventLoopGroup group = new NioEventLoopGroup();
+
+        client = new Bootstrap();
+        client.group(group).channel(NioSocketChannel.class).handler(new LoggingHandler(LogLevel.INFO));
+
+        final AbstractConnectionWatchdog watchdog = new AbstractConnectionWatchdog(client, timer, port, host, true) {
+
+            @Override
+            public ChannelHandler[] handlers() {
+                return new ChannelHandler[]{
+                        this,
+                        new LengthFieldBasedFrameDecoder(65535, 10, 2),
+                        new IdleStateHandler(0, 0, 10),
+                        //加入自定义的handler
+                        new SysClientHandler()
+                };
+            }
+        };
+        ChannelFuture future;
+        //进行连接
+        try {
+            synchronized (client) {
+                client.handler(new ChannelInitializer<Channel>() {
+
+                    //初始化channel
                     @Override
-                    protected void initChannel(NioSocketChannel ch) {
-                        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(65535,10,2))
-                                .addLast(new IdleStateHandler(0, 0, 10))
-                                //加入自定义的handler
-                                .addLast(new SysClientHandler());
+                    protected void initChannel(Channel ch) throws Exception {
+                        ch.pipeline().addLast(watchdog.handlers());
                     }
                 });
-        //连接服务器
-        f = client.connect(cache.get("internal.host"),
-                cache.getInt("internal.port")).sync();
-        //阻塞主进程直到连接断开
-        f.channel().closeFuture().sync();
+                future = client.connect(host, port);
+            }
+            // 以下代码在synchronized同步块外面是安全的
+            future.sync();
+        } catch (Throwable t) {
+            throw new Exception("connects to  fails", t);
+        }
     }
 
     public static void main(String[] args) throws Exception {

@@ -1,6 +1,7 @@
 package client.handler;
 
 import client.handler.Processor.ConnectionPoolProcessor;
+import client.handler.Processor.HeartbeatProcessor;
 import client.handler.Processor.LoginProcessor;
 import core.constant.FrameConstant;
 import core.enums.CommandEnum;
@@ -9,21 +10,15 @@ import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
-import io.netty.util.CharsetUtil;
+import java.util.Date;
 
 /**
  * @Author wneck130@gmail.com
  * @Function 代理程序的系统业务处理器
  */
-public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
 
     private static byte pv = (byte)0xAA;
-    private static final ByteBuf HEARTBEAT_SEQUENCE = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("Heartbeat",
-            CharsetUtil.UTF_8));
-    private volatile boolean reconnect = true;
-    private int attempts;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
@@ -36,8 +31,8 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 new LoginProcessor().process(ctx, msg);
                 break;
             case (byte)0x02:
-                System.out.println("服务端响应心跳");
-//                new HeartbeatProcessor().process(ctx, msg);
+                System.out.println("服务端响应心跳："+System.currentTimeMillis()/1000);
+                new HeartbeatProcessor().process(ctx, msg);
                 break;
             case (byte)0x03:
                 System.out.println("接收服务端连接池命令");
@@ -69,54 +64,27 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
         byteBuf.writeByte(vc);
         System.out.println(ByteUtil.toHexString(BufUtil.getArray(byteBuf)));
         ctx.writeAndFlush(byteBuf);
-    }
 
-
-    /**
-     * 触发心跳事件
-     * @param ctx
-     * @param evt
-     * @throws Exception
-     */
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        System.out.println("触发心跳");
-        if (evt instanceof IdleStateEvent) {
-            IdleState state = ((IdleStateEvent) evt).state();
-            if (state == IdleState.ALL_IDLE) {
-                //接收到服务器的心跳响应后间隔10秒给服务器发送心跳命令
-                ByteBuf buf = Unpooled.buffer();
-                buf.writeByte(FrameConstant.pv);
-                buf.writeLong(System.currentTimeMillis());
-                buf.writeByte(CommandEnum.CMD_HEARTBEAT.getCmd());
-                buf.writeShort(1);
-                //计算校验和
-                int vc1 = 0;
-                for (byte byteVal : BufUtil.getArray(buf)) {
-                    vc1 = vc1 + (byteVal & 0xFF);
-                }
-                buf.writeByte(vc1);
-                ctx.writeAndFlush(buf);
-            }
-        } else {
-            super.userEventTriggered(ctx, evt);
+        //发送心跳命令
+        ByteBuf buf = Unpooled.buffer();
+        buf.writeByte(FrameConstant.pv);
+        buf.writeLong(System.currentTimeMillis());
+        buf.writeByte(CommandEnum.CMD_HEARTBEAT.getCmd());
+        buf.writeShort(1);
+        //计算校验和
+        int vc1 = 0;
+        for (byte byteVal : BufUtil.getArray(buf)) {
+            vc1 = vc1 + (byteVal & 0xFF);
         }
+        buf.writeByte(vc1);
+        ctx.writeAndFlush(buf);
     }
+
 
 
     //服务端断开触发
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("链接关闭");
-        if(reconnect){
-            System.out.println("链接关闭，将进行重连");
-            if (attempts < 10) {
-                attempts++;
-                //重连的间隔时间会越来越长
-                int timeout = 2 << attempts;
-                System.out.println(timeout);
-            }
-        }
-        ctx.fireChannelInactive();
+        System.out.println("服务端停止时间是："+new Date());
     }
 }

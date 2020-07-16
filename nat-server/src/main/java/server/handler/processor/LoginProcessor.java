@@ -42,14 +42,32 @@ public class LoginProcessor implements Processor {
             ServerChannelGroup.addSysChannel(ctx.channel());
             ProxyServer proxyServer = new ProxyServer();
             proxyServer.init();
-            proxyServer.start();
+            //创建子线程启动代理服务
+            Runnable task = () -> {
+                try {
+                    proxyServer.start();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            };
+            Thread thread = new Thread(task);
+            thread.start();
             System.out.println("启动代理服务（ProxyServer）成功");
         }
         //启动内部服务
         if (!Server.internalServer.isStarted()) {
             InternalServer internalServer = new InternalServer();
             internalServer.init();
-            internalServer.start();
+            //创建子线程启动内部服务
+            Runnable task = () -> {
+                try {
+                    internalServer.start();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            };
+            Thread thread = new Thread(task);
+            thread.start();
             System.out.println("启动代理服务（InternalServer）成功");
         }
         //响应客户端
