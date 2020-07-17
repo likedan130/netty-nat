@@ -18,6 +18,7 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         byte cmd = msg.getByte(9);
+        System.out.println(cmd);
         switch (cmd) {
             //接入命令
             case 0x01:
@@ -49,4 +50,5 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
         System.out.println("客户端停止时间是："+new Date());
         super.channelInactive(ctx);
     }
+
 }

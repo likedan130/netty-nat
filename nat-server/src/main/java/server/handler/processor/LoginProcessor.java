@@ -38,71 +38,74 @@ public class LoginProcessor implements Processor {
         msg.getBytes(13, passwordBytes);
         String password = new String(passwordBytes, "UTF-8");
         if (Objects.equals(password, "password")) {
-            //认证通过，缓存当前连接，并且创建代理服务端
-            ServerChannelGroup.addSysChannel(ctx.channel());
-            ProxyServer proxyServer = new ProxyServer();
-            proxyServer.init();
-            //创建子线程启动代理服务
-            new Thread(()-> {
-                try {
-                    proxyServer.start();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }).start();
-            System.out.println("启动代理服务（ProxyServer）成功");
-        }
-        //启动内部服务
-        if (!Server.internalServer.isStarted()) {
-            InternalServer internalServer = new InternalServer();
-            internalServer.init();
-            //创建子线程启动内部服务
-            new Thread(()-> {
-                try {
-                    internalServer.start();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }).start();
-            System.out.println("启动代理服务（InternalServer）成功");
-        }
-        //响应客户端
-        ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeByte(FrameConstant.pv);
-        long serial = System.currentTimeMillis();
-        byteBuf.writeLong(serial);
-        byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
-        byteBuf.writeShort(1 + 1);
-        byteBuf.writeByte(FrameConstant.RESULT_SUCCESS);
-        //计算校验和
-        int vc = 0;
-        for (byte byteVal : BufUtil.getArray(byteBuf)) {
-            vc = vc + (byteVal & 0xFF);
-        }
-        byteBuf.writeByte(vc);
-        //给channel加个监听，如果响应成功发送建立连接池命令
-        ctx.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                System.out.println("成功发送连接池命令");
-                if (future.isSuccess()) {
-                    //立刻发送连接池的建立命令给客户端
-                    ByteBuf byteBuf = Unpooled.buffer();
-                    byteBuf.writeByte(FrameConstant.pv);
-                    long serial = System.currentTimeMillis();
-                    byteBuf.writeLong(serial);
-                    byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
-                    byteBuf.writeShort(1 + 1);
-                    byteBuf.writeByte(10);//连接池数量
-                    //计算校验和
-                    int vc = 0;
-                    for (byte byteVal : BufUtil.getArray(byteBuf)) {
-                        vc = vc + (byteVal & 0xFF);
+            //判断代理服务是否活跃
+            if (!Server.proxyServer.isStarted()) {
+                //认证通过，缓存当前连接，并且创建代理服务端
+                ServerChannelGroup.addSysChannel(ctx.channel());
+                ProxyServer proxyServer = new ProxyServer();
+                proxyServer.init();
+                //创建子线程启动代理服务
+                new Thread(() -> {
+                    try {
+                        proxyServer.start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    byteBuf.writeByte(vc);
-                    ctx.writeAndFlush(byteBuf);
-                }
+                }).start();
+                System.out.println("启动代理服务（ProxyServer）成功");
             }
-        });
+            //判断内部服务是否活跃
+            if (!Server.internalServer.isStarted()) {
+                InternalServer internalServer = new InternalServer();
+                internalServer.init();
+                //创建子线程启动内部服务
+                new Thread(() -> {
+                    try {
+                        internalServer.start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+                System.out.println("启动代理服务（InternalServer）成功");
+                //响应客户端
+                ByteBuf byteBuf = Unpooled.buffer();
+                byteBuf.writeByte(FrameConstant.pv);
+                long serial = System.currentTimeMillis();
+                byteBuf.writeLong(serial);
+                byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
+                byteBuf.writeShort(1 + 1);
+                byteBuf.writeByte(FrameConstant.RESULT_SUCCESS);
+                //计算校验和
+                int vc = 0;
+                for (byte byteVal : BufUtil.getArray(byteBuf)) {
+                    vc = vc + (byteVal & 0xFF);
+                }
+                byteBuf.writeByte(vc);
+                //给channel加个监听，如果响应成功发送建立连接池命令
+                ctx.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        System.out.println("成功发送连接池命令");
+                        if (future.isSuccess()) {
+                            //立刻发送连接池的建立命令给客户端
+                            ByteBuf byteBuf = Unpooled.buffer();
+                            byteBuf.writeByte(FrameConstant.pv);
+                            long serial = System.currentTimeMillis();
+                            byteBuf.writeLong(serial);
+                            byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
+                            byteBuf.writeShort(1 + 1);
+                            byteBuf.writeByte(10);//连接池数量
+                            //计算校验和
+                            int vc = 0;
+                            for (byte byteVal : BufUtil.getArray(byteBuf)) {
+                                vc = vc + (byteVal & 0xFF);
+                            }
+                            byteBuf.writeByte(vc);
+                            ctx.writeAndFlush(byteBuf);
+                        }
+                    }
+                });
+            }
+        }
     }
 }

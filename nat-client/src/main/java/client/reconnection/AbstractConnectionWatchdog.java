@@ -94,6 +94,7 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
                     ch.pipeline().addLast(handlers());
                 }
             });
+            System.out.println("尝试重连："+System.currentTimeMillis()/1000);
             future = bootstrap.connect(host,port);
         }
         //future对象

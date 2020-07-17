@@ -24,7 +24,6 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         System.out.println("SysClientHandler");
         //协议中第10个字节为命令字，getByte中index从0开始
         byte cmd = msg.getByte(9);
-        System.out.println(cmd);
         switch (cmd) {
             case (byte)0x01:
                 System.out.println("服务端响应接入连接");
@@ -49,7 +48,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         int passwordLen = password.length;
         ByteBuf byteBuf = Unpooled.buffer();
         byteBuf.writeByte(pv);
-        Long serial = System.currentTimeMillis();
+        long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
         byteBuf.writeShort(1 + 1 + passwordLen);

@@ -9,7 +9,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import server.Server;
 import server.handler.SysServerhandler;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -55,7 +54,7 @@ public class HeartbeatProcessor implements Processor {
                 int interval = (int) (endTime - time) / 1000;
                 System.out.println("心跳时间间隔：" + interval);
                 //如果间隔时间大于15秒则关闭channel
-                if (interval > NumberEnum.FIFTEEN.getValue()) {
+                if (interval > NumberEnum.HEART_TATE_INTERVAL.getType()) {
                     System.out.println("关闭通道");
                     //关闭链路
                     ctx.close();

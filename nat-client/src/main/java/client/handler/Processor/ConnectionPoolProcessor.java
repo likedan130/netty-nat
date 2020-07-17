@@ -19,7 +19,14 @@ public class ConnectionPoolProcessor implements Processor {
         InternalClient internalClient = new InternalClient();
         try {
             internalClient.init();
-            internalClient.start(connectionNum);
+            //创建子线程启动内部连接池
+            new Thread(()->{
+                try {
+                    internalClient.start(connectionNum);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }).start();
         } catch (Exception e) {
             e.printStackTrace();
             ctx.close();
