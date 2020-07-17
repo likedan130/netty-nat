@@ -10,6 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import server.Server;
 import server.handler.SysServerhandler;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class HeartbeatProcessor implements Processor {
@@ -36,26 +37,30 @@ public class HeartbeatProcessor implements Processor {
      * 客户端心跳超时检测
      */
     public void timeoutDetection(ChannelHandlerContext ctx){
-        //todo 定时心跳监听待完善
+        //判断scheduledExecutor是否关闭
+        if(Server.scheduledExecutor.isShutdown()){
+            //创建一个单线程执行器
+            Server.scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        }
+        //执行周期任务，首次延迟15秒，后期每次间隔15秒执行
         Server.scheduledExecutor.scheduleAtFixedRate(() -> {
-            long time = System.currentTimeMillis();
+            //得到心跳发送时间
+            long time = SysServerhandler.time;
             System.out.println("执行");
-            if(time != 0) {
+            //首次连接不执行
+            if(time != 0L) {
                 long endTime = System.currentTimeMillis();
                 System.out.println("time:" + time / 1000);
                 System.out.println("周期执行定时任务：" + endTime / 1000);
                 int interval = (int) (endTime - time) / 1000;
                 System.out.println("心跳时间间隔：" + interval);
+                //如果间隔时间大于15秒则关闭channel
                 if (interval > NumberEnum.FIFTEEN.getValue()) {
                     System.out.println("关闭通道");
                     //关闭链路
                     ctx.close();
-                    //关闭定时器
-                    try {
-                        Server.scheduledExecutor.wait();
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
+                    //关闭
+                    Server.scheduledExecutor.shutdown();
                 }
             }
         },15,15, TimeUnit.SECONDS);

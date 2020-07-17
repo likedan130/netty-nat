@@ -37,9 +37,9 @@ public class InternalClient extends Client {
         for (int i = 0;i < num; i++) {
             //连接服务器
             ChannelFuture future = client.connect(cache.get("internal.host"),
-                    cache.getInt("internal.port")).sync();
+                    cache.getInt("internal.server.port")).sync();
             //阻塞主进程直到连接断开
-//            future.channel().closeFuture().sync();
+            future.channel().closeFuture().sync();
         }
     }
 }

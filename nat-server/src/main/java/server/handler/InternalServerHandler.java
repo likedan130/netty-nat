@@ -25,6 +25,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        //缓存InternalClient连接
         ServerChannelGroup.addIdleInternalChannel(ctx.channel());
     }
 

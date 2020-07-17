@@ -18,13 +18,29 @@ import java.util.concurrent.TimeUnit;
 @Sharable
 public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAdapter implements TimerTask, ChannelHandlerHolder {
 
+    /**
+     * 连接信息
+     */
     private final Bootstrap bootstrap;
+    /**
+     * 定时重连
+     */
     private final Timer timer;
+    /**
+     * 端口号
+     */
     private final int port;
-
+    /**
+     * sysServer地址
+     */
     private final String host;
-
+    /**
+     * 状态判断
+     */
     private boolean reconnect;
+    /**
+     * 重连次数
+     */
     private int attempts;
 
 

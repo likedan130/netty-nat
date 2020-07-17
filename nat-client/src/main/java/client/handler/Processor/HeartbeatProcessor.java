@@ -26,6 +26,7 @@ public class HeartbeatProcessor implements Processor {
             vc = vc + (byteVal & 0xFF);
         }
         byteBuf.writeByte(vc);
+        //10秒延迟发送
         Client.scheduledExecutor.schedule(() -> ctx.writeAndFlush(byteBuf), 10, TimeUnit.SECONDS);
     }
 }

@@ -19,12 +19,12 @@ import java.util.Date;
 public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
 
     private static byte pv = (byte)0xAA;
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         System.out.println("SysClientHandler");
         //协议中第10个字节为命令字，getByte中index从0开始
         byte cmd = msg.getByte(9);
+        System.out.println(cmd);
         switch (cmd) {
             case (byte)0x01:
                 System.out.println("服务端响应接入连接");
@@ -39,7 +39,6 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
                 new ConnectionPoolProcessor().process(ctx, msg);
                 break;
         }
-
     }
 
     @Override

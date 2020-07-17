@@ -43,15 +43,13 @@ public class LoginProcessor implements Processor {
             ProxyServer proxyServer = new ProxyServer();
             proxyServer.init();
             //创建子线程启动代理服务
-            Runnable task = () -> {
+            new Thread(()-> {
                 try {
                     proxyServer.start();
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-            };
-            Thread thread = new Thread(task);
-            thread.start();
+            }).start();
             System.out.println("启动代理服务（ProxyServer）成功");
         }
         //启动内部服务
@@ -59,21 +57,19 @@ public class LoginProcessor implements Processor {
             InternalServer internalServer = new InternalServer();
             internalServer.init();
             //创建子线程启动内部服务
-            Runnable task = () -> {
+            new Thread(()-> {
                 try {
                     internalServer.start();
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-            };
-            Thread thread = new Thread(task);
-            thread.start();
+            }).start();
             System.out.println("启动代理服务（InternalServer）成功");
         }
         //响应客户端
         ByteBuf byteBuf = Unpooled.buffer();
         byteBuf.writeByte(FrameConstant.pv);
-        Long serial = System.currentTimeMillis();
+        long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
         byteBuf.writeShort(1 + 1);
@@ -93,7 +89,7 @@ public class LoginProcessor implements Processor {
                     //立刻发送连接池的建立命令给客户端
                     ByteBuf byteBuf = Unpooled.buffer();
                     byteBuf.writeByte(FrameConstant.pv);
-                    Long serial = System.currentTimeMillis();
+                    long serial = System.currentTimeMillis();
                     byteBuf.writeLong(serial);
                     byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
                     byteBuf.writeShort(1 + 1);
