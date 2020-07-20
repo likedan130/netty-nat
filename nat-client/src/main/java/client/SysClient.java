@@ -28,8 +28,8 @@ public class SysClient extends Client {
         //加载配置文件
         new PropertiesLoader().load(System.getProperty("user.dir"));
         cache = PropertiesCache.getInstance();
-        host = cache.get("internal.host");
-        port = cache.getInt("internal.port");
+        host = "192.168.0.158";
+        port = 8080;
     }
 
     protected final HashedWheelTimer timer = new HashedWheelTimer();

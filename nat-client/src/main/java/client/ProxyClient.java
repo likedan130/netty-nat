@@ -37,8 +37,8 @@ public class ProxyClient extends Client {
         });
 
         //连接服务器
-        f = client.connect(cache.get("proxy.host"),
-                cache.getInt("proxy.port")).sync();
+        f = client.connect("192.168.0.158",
+               8081).sync();
         f.addListener(new GenericFutureListener<Future<? super Void>>() {
             @Override
             public void operationComplete(Future<? super Void> future) throws Exception {

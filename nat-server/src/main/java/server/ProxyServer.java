@@ -36,8 +36,8 @@ public class ProxyServer extends Server {
                 .childHandler(channelInit)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
-        f = b.bind(cache.getInt("proxy.server.port")).sync();
-        System.out.println("DeviceServer start proxy-server on port " + cache.getInt("proxy.server.port") + "......");
+        f = b.bind(8081).sync();
+        System.out.println("DeviceServer start proxy-server on port " + 8081+ "......");
         //服务端管道关闭的监听器并同步阻塞,直到server channel关闭,线程才会往下执行,结束进程
         f.channel().closeFuture().sync();
     }

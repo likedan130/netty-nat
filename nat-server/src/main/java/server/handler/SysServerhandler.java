@@ -1,5 +1,6 @@
 package server.handler;
 
+import core.detection.PublicDetectionHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -18,7 +19,10 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         byte cmd = msg.getByte(9);
-        System.out.println(cmd);
+        //判断是否满足自定义协议
+        if(PublicDetectionHandler.detection(msg)){
+            return;
+        }
         switch (cmd) {
             //接入命令
             case 0x01:

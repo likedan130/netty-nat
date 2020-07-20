@@ -15,9 +15,6 @@ public class LoginProcessor implements Processor {
     @Override
     public void process(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception{
         //可读长度不够，说明不符合协议，不做解析
-        if (byteBuf.readableBytes() < 12) {
-            return;
-        }
         byte result = byteBuf.getByte(12);
         if (result == FrameConstant.RESULT_FAIL) {
             //重新接入

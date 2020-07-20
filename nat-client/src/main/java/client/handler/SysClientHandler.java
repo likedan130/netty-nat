@@ -4,6 +4,8 @@ import client.handler.Processor.ConnectionPoolProcessor;
 import client.handler.Processor.HeartbeatProcessor;
 import client.handler.Processor.LoginProcessor;
 import core.constant.FrameConstant;
+import core.detection.PublicDetectionHandler;
+import core.enums.AgreementEnum;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
 import core.utils.ByteUtil;
@@ -18,10 +20,13 @@ import java.util.Date;
  */
 public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
 
-    private static byte pv = (byte)0xAA;
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         System.out.println("SysClientHandler");
+        //判断是否满足自定义协议
+        if(PublicDetectionHandler.detection(msg)){
+            return;
+        }
         //协议中第10个字节为命令字，getByte中index从0开始
         byte cmd = msg.getByte(9);
         switch (cmd) {
@@ -47,7 +52,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         byte[] password = "password".getBytes("UTF-8");
         int passwordLen = password.length;
         ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeByte(pv);
+        byteBuf.writeByte(AgreementEnum.PV.getPv());
         long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
