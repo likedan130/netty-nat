@@ -42,6 +42,11 @@ public class ProxyServer extends Server {
         f.channel().closeFuture().sync();
     }
 
+    public static void main(String[] args) throws Exception {
+        ProxyServer server = new ProxyServer();
+        server.init();
+        server.start();
+    }
     @Override
     public boolean isStarted() {
         if (!Objects.equals(null, f) && f.channel().isActive()) {

@@ -64,6 +64,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         for (byte byteVal : BufUtil.getArray(byteBuf)) {
             vc = vc + (byteVal & 0xFF);
         }
+        System.out.println("client校验码："+ vc);
         byteBuf.writeByte(vc);
         System.out.println(ByteUtil.toHexString(BufUtil.getArray(byteBuf)));
         ctx.writeAndFlush(byteBuf);

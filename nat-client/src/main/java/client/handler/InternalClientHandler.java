@@ -16,6 +16,7 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("内部客户端channelActive收到："+ctx);
         ClientChannelGroup.addIdleInternalChannel(ctx.channel());
     }
 
@@ -25,6 +26,7 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+        System.out.println("内部客户端channelRead0收到："+ctx + "...."+msg);
         ChannelId channelId = ctx.channel().id();
         if (ClientChannelGroup.channelPairExist(channelId)) {
             //如果存在配对，直接转发消息

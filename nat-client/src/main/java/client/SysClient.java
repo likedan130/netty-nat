@@ -1,6 +1,7 @@
 package client;
 
 import client.reconnection.AbstractConnectionWatchdog;
+import client.reconnection.ConnectionListener;
 import core.cache.PropertiesCache;
 import core.frame.loader.PropertiesLoader;
 import client.handler.*;
@@ -28,7 +29,7 @@ public class SysClient extends Client {
         //加载配置文件
         new PropertiesLoader().load(System.getProperty("user.dir"));
         cache = PropertiesCache.getInstance();
-        host = "192.168.0.158";
+        host = "192.168.0.174";
         port = 8080;
     }
 
@@ -68,6 +69,8 @@ public class SysClient extends Client {
                     }
                 });
                 future = client.connect(host, port);
+                //启动监听，失败重连
+                future.addListener(new ConnectionListener());
             }
             // 以下代码在synchronized同步块外面是安全的
             future.sync();

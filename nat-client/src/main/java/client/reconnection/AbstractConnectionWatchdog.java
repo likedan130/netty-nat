@@ -80,6 +80,12 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
         ctx.fireChannelInactive();
     }
 
+    /**
+     * HashedWheelTimer 实现 Timer 并重写newTimeout方法实现延时
+     * 任务处理，newTimeout会执行 TimerTask run() 方法
+     * @param timeout
+     * @throws Exception
+     */
     @Override
     public void run(Timeout timeout) throws Exception {
 
@@ -103,7 +109,6 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
             @Override
             public void operationComplete(ChannelFuture f) throws Exception {
                 boolean succeed = f.isSuccess();
-
                 //如果重连失败，则调用ChannelInactive方法，再次出发重连事件，一直尝试10次，如果失败则不再重连
                 if (!succeed) {
                     System.out.println("重连失败");

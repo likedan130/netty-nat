@@ -6,12 +6,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import server.Server;
 import server.group.ServerChannelGroup;
-
 import java.util.concurrent.TimeUnit;
 
 public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+        System.out.println("代理服务channelRead0收到："+ctx + "...."+msg);
         //收到外部请求先找配对的内容连接
         Channel proxyChannel = ctx.channel();
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
@@ -26,6 +26,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("代理服务channelActive收到："+ctx);
         //新的连接建立后先进行配对
         ServerChannelGroup.forkChannel(ctx.channel());
     }

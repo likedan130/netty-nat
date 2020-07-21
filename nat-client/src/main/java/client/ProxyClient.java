@@ -37,7 +37,7 @@ public class ProxyClient extends Client {
         });
 
         //连接服务器
-        f = client.connect("192.168.0.158",
+        f = client.connect("192.168.0.174",
                8081).sync();
         f.addListener(new GenericFutureListener<Future<? super Void>>() {
             @Override
