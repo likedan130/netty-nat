@@ -1,9 +1,8 @@
 package core.detection;
 
-import core.enums.AgreementEnum;
+import core.constant.FrameConstant;
 import core.enums.CommandEnum;
 import core.utils.ArrayUtil;
-import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -22,12 +21,14 @@ public class PublicDetectionHandler {
         }
         //获取协议头
         byte pv = msg.getByte(0);
+        //获取序列号
+        long serial = msg.getLong(1);
         //获取命令
         byte cmd = msg.getByte(9);
         //获取DATA长度
         short len = msg.getShort(10);
         //判断协议头
-        if (pv != AgreementEnum.PV.getPv()){
+        if (pv != FrameConstant.pv){
             return true;
         }
         //自定义命令数组
@@ -49,20 +50,5 @@ public class PublicDetectionHandler {
 
         }
         return false;
-    }
-
-    /**
-     * 计算校验和
-     * @param msg
-     * @return
-     */
-    private static int calculateVc(ByteBuf msg){
-        //计算校验和
-        //计算校验和
-        byte vc1 = (byte)0;
-        for (byte byteVal : BufUtil.getArray(msg)) {
-            vc1 = (byte) (vc1 + byteVal);
-        }
-        return vc1;
     }
 }

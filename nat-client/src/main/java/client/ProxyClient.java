@@ -57,7 +57,7 @@ public class ProxyClient extends Client {
      * @return
      */
     public Channel getChannel(int timeout) throws Exception{
-        Long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         while (true) {
             Thread.sleep(0);
             if (System.currentTimeMillis() - start >= timeout) {

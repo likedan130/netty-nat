@@ -5,13 +5,13 @@ import client.handler.Processor.HeartbeatProcessor;
 import client.handler.Processor.LoginProcessor;
 import core.constant.FrameConstant;
 import core.detection.PublicDetectionHandler;
-import core.enums.AgreementEnum;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
 import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+
 import java.util.Date;
 
 /**
@@ -52,7 +52,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         byte[] password = "password".getBytes("UTF-8");
         int passwordLen = password.length;
         ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeByte(AgreementEnum.PV.getPv());
+        byteBuf.writeByte(FrameConstant.pv);
         long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());

@@ -16,7 +16,7 @@ public class HeartbeatProcessor implements Processor {
         //接收到服务器的心跳响应后间隔10秒给服务器发送心跳命令
         ByteBuf byteBuf = Unpooled.buffer();
         byteBuf.writeByte(FrameConstant.pv);
-        Long serial = System.currentTimeMillis();
+        long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_HEARTBEAT.getCmd());
         byteBuf.writeShort(1);

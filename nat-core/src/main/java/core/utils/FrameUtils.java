@@ -15,7 +15,7 @@ public class FrameUtils {
      */
     public static byte[] setData(byte cmd, byte[] datas) {
         ByteBuffer byteBuffer = ByteBuffer.allocate(datas.length + 13);
-        Long serial = System.currentTimeMillis();
+        long serial = System.currentTimeMillis();
         //初始化校验码，真实值根据组装完成的命令进行重新计算
         byte vc = 0x00;
         short len = (short)(datas.length + 1);
