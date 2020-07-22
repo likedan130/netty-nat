@@ -8,13 +8,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.FixedLengthFrameDecoder;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.timeout.IdleStateHandler;
 import server.handler.ProxyServerHandler;
-import server.handler.ProxyServerHandler2;
-import server.handler.SysServerhandler;
-
 import java.util.Objects;
 
 public class ProxyServer extends Server {
@@ -33,7 +27,7 @@ public class ProxyServer extends Server {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline()
-                        .addLast(new ProxyServerHandler2());
+                        .addLast(new ProxyServerHandler());
             }
         };
         b.group(bossGroup, workerGroup)
@@ -47,11 +41,6 @@ public class ProxyServer extends Server {
         f.channel().closeFuture().sync();
     }
 
-    public static void main(String[] args) throws Exception {
-        ProxyServer server = new ProxyServer();
-        server.init();
-        server.start();
-    }
     @Override
     public boolean isStarted() {
         if (!Objects.equals(null, f) && f.channel().isActive()) {

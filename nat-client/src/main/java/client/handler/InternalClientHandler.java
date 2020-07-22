@@ -1,11 +1,9 @@
 package client.handler;
 
 import client.group.ClientChannelGroup;
-import core.enums.CommandEnum;
 import core.utils.BufUtil;
-import client.handler.Processor.LoginProcessor;
+import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 
 /**
@@ -26,7 +24,7 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        System.out.println("内部客户端channelRead0收到："+ctx + "...."+msg);
+        System.out.println("内部客户端channelRead0收到："+ ByteUtil.toHexString(BufUtil.getArray(msg)));
         ChannelId channelId = ctx.channel().id();
         if (ClientChannelGroup.channelPairExist(channelId)) {
             //如果存在配对，直接转发消息
@@ -38,6 +36,4 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
             proxyChannel.writeAndFlush(msg);
         }
     }
-
-
 }

@@ -44,7 +44,6 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("客户端组："+ServerChannelGroup.getSysChannel());
         System.out.println("sysClient连接成功");
         super.channelActive(ctx);
     }

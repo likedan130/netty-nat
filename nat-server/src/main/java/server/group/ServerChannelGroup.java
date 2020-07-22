@@ -49,6 +49,22 @@ public class ServerChannelGroup {
         return sysChannel;
     }
 
+    public static Map<ChannelId, ChannelId> getChannelPair() {
+        return channelPair;
+    }
+
+    public static ChannelGroup getProxyGroup() {
+        return proxyGroup;
+    }
+
+    public static ChannelGroup getInternalGroup() {
+        return internalGroup;
+    }
+
+    public static ChannelGroup getIdleInternalGroup() {
+        return idleInternalGroup;
+    }
+
     public static void addProxyChannel(Channel channel) {
         proxyGroup.add(channel);
     }
@@ -71,6 +87,8 @@ public class ServerChannelGroup {
 
     public static void addIdleInternalChannel(Channel channel) {
         idleInternalGroup.add(channel);
+        Channel channel2 = idleInternalGroup.iterator().next();
+        System.out.println("" + channel2.id());
     }
 
     /**
@@ -88,15 +106,16 @@ public class ServerChannelGroup {
      * @throws Exception
      */
     public synchronized static void forkChannel(Channel channel) throws Exception{
-        while (true) {
+//        while (true) {
             if (!idleInternalGroup.isEmpty()) {
                 Channel idleChannel = idleInternalGroup.iterator().next();
                 idleInternalGroup.remove(idleChannel);
                 internalGroup.add(idleChannel);
-                channelPair.put(channel.id(),idleChannel.id());
+                channelPair.put(idleChannel.id(),channel.id());
+                System.out.println("代理服务与内部服务配对："+channel.id()+","+idleChannel.id());
             }
-            Thread.sleep(0);
-        }
+//            Thread.sleep(0);
+//        }
     }
 
     /**
@@ -194,6 +213,6 @@ public class ServerChannelGroup {
         if (result.isEmpty() || result.size() != 1) {
             throw new Exception("channel匹配异常!!!");
         }
-        return proxyGroup.find(result.get(0));
+        return internalGroup.find(result.get(0));
     }
 }
