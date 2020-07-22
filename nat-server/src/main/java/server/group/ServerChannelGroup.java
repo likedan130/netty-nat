@@ -88,7 +88,7 @@ public class ServerChannelGroup {
     public static void addIdleInternalChannel(Channel channel) {
         idleInternalGroup.add(channel);
         Channel channel2 = idleInternalGroup.iterator().next();
-        System.out.println("" + channel2.id());
+        System.out.println("新增内部空闲连接" + channel2.id());
     }
 
     /**
@@ -111,8 +111,11 @@ public class ServerChannelGroup {
                 Channel idleChannel = idleInternalGroup.iterator().next();
                 idleInternalGroup.remove(idleChannel);
                 internalGroup.add(idleChannel);
-                channelPair.put(idleChannel.id(),channel.id());
-                System.out.println("代理服务与内部服务配对："+channel.id()+","+idleChannel.id());
+                channelPair.put(idleChannel.id(), channel.id());
+                proxyGroup.add(channel);
+                System.out.println("代理服务"+channel.id()+"与内部服务"+idleChannel.id()+"配对成功");
+            } else {
+                System.out.println("连接用尽，代理服务"+channel.id()+"配对失败!!!");
             }
 //            Thread.sleep(0);
 //        }
@@ -207,8 +210,8 @@ public class ServerChannelGroup {
      */
     public static Channel getInternalByProxy(ChannelId channelId) throws Exception{
         List<ChannelId> result = channelPair.entrySet().stream()
-                .map(x -> x.getValue())
-                .filter(e -> Objects.equals(e, channelId))
+                .filter(e -> Objects.equals(e.getValue(), channelId))
+                .map((x) -> x.getKey())
                 .collect(Collectors.toList());
         if (result.isEmpty() || result.size() != 1) {
             throw new Exception("channel匹配异常!!!");

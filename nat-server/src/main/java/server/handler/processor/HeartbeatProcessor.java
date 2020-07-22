@@ -45,14 +45,14 @@ public class HeartbeatProcessor implements Processor {
         Server.scheduledExecutor.scheduleAtFixedRate(() -> {
             //得到心跳发送时间
             long time = SysServerhandler.time;
-            System.out.println("执行");
+//            System.out.println("执行");
             //首次连接不执行
             if(time != 0L) {
                 long endTime = System.currentTimeMillis();
-                System.out.println("time:" + time / 1000);
-                System.out.println("周期执行定时任务：" + endTime / 1000);
+//                System.out.println("time:" + time / 1000);
+//                System.out.println("周期执行定时任务：" + endTime / 1000);
                 int interval = (int) (endTime - time) / 1000;
-                System.out.println("心跳时间间隔：" + interval);
+//                System.out.println("心跳时间间隔：" + interval);
                 //如果间隔时间大于15秒则关闭channel
                 if (interval > NumberEnum.HEART_TATE_INTERVAL.getType()) {
                     System.out.println("关闭通道");

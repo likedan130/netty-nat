@@ -21,7 +21,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        System.out.println("SysClientHandler");
+//        System.out.println("SysClientHandler");
         //判断是否满足自定义协议
         if(PublicDetectionHandler.detection(msg)){
             return;
@@ -34,7 +34,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
                 new LoginProcessor().process(ctx, msg);
                 break;
             case (byte)0x02:
-                System.out.println("服务端响应心跳："+System.currentTimeMillis()/1000);
+//                System.out.println("服务端响应心跳："+System.currentTimeMillis()/1000);
                 new HeartbeatProcessor().process(ctx, msg);
                 break;
             case (byte)0x03:
@@ -63,7 +63,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         for (byte byteVal : BufUtil.getArray(byteBuf)) {
             vc = vc + (byteVal & 0xFF);
         }
-        System.out.println("client校验码："+ vc);
+//        System.out.println("client校验码："+ vc);
         byteBuf.writeByte(vc);
         System.out.println(ByteUtil.toHexString(BufUtil.getArray(byteBuf)));
         ctx.writeAndFlush(byteBuf);
@@ -88,6 +88,6 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
     //服务端断开触发
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("服务端停止时间是："+new Date());
+//        System.out.println("服务端停止时间是："+new Date());
     }
 }

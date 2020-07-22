@@ -36,9 +36,9 @@ public class ProxyServer extends Server {
                 .childHandler(channelInit)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
-        f = b.bind(8081).sync();
-        System.out.println("SysServer start listen on port " + 8081 + "......");
-        f.channel().closeFuture().sync();
+        f = b.bind(27017).sync();
+        System.out.println("SysServer start listen on port " + 27017 + "......");
+//        f.channel().closeFuture().sync();
     }
 
     @Override

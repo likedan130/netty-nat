@@ -4,7 +4,9 @@ import client.handler.ProxyClientHandler;
 import core.cache.PropertiesCache;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -22,10 +24,11 @@ public class ProxyClient extends Client {
         cache = PropertiesCache.getInstance();
     }
 
-    public void start() throws InterruptedException {
+    public ChannelFuture start() throws InterruptedException {
         //通过Bootstrap启动服务端
         Bootstrap client = new Bootstrap();
         //定义线程组，处理读写和链接事件
+        group = new NioEventLoopGroup();
         client.group(group)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<NioSocketChannel>() {
@@ -37,18 +40,11 @@ public class ProxyClient extends Client {
         });
 
         //连接服务器
-        f = client.connect("192.168.0.174",
-               8081).sync();
-        f.addListener(new GenericFutureListener<Future<? super Void>>() {
-            @Override
-            public void operationComplete(Future<? super Void> future) throws Exception {
-                if (future.isSuccess()) {
-                    channel = f.channel();
-                }
-            }
-        });
+        f = client.connect("192.168.0.158",
+               27017).sync();
+        return f;
         //阻塞主进程直到连接断开
-        f.channel().closeFuture().sync();
+//        f.channel().closeFuture().sync();
     }
 
     /**

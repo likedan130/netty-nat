@@ -33,7 +33,7 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
             //心跳命令
             case 0x02:
                 time = System.currentTimeMillis();
-                System.out.println("接收到客户心跳："+System.currentTimeMillis()/1000);
+//                System.out.println("接收到客户心跳："+System.currentTimeMillis()/1000);
                 new HeartbeatProcessor().process(ctx, msg);
                 break;
             //建立连接池命令
@@ -50,7 +50,7 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("客户端停止时间是："+new Date());
+//        System.out.println("客户端停止时间是："+new Date());
         super.channelInactive(ctx);
     }
 

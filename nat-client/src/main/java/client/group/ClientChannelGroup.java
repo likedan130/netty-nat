@@ -3,6 +3,7 @@ package client.group;
 import client.ProxyClient;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -78,10 +79,12 @@ public class ClientChannelGroup {
         //获取代理连接
         ProxyClient proxyClient = new ProxyClient();
         proxyClient.init();
-        proxyClient.start();
-        Channel proxyChannel = proxyClient.getChannel(2000);
+        ChannelFuture channelFuture = proxyClient.start();
+        Channel proxyChannel = channelFuture.channel();
         //建立配对
         addChannelPair(channel, proxyChannel);
+        addProxyChannel(proxyChannel);
+        System.out.println("配对建立成功，"+channel.id() + ": "+proxyChannel.id());
         return proxyChannel;
     }
 
@@ -157,12 +160,12 @@ public class ClientChannelGroup {
      */
     public static Channel getInternalByProxy(ChannelId channelId) throws Exception{
         List<ChannelId> result = channelPair.entrySet().stream()
-                .map(x -> x.getValue())
-                .filter(e -> Objects.equals(e, channelId))
+                .filter(e -> Objects.equals(e.getValue(), channelId))
+                .map(x -> x.getKey())
                 .collect(Collectors.toList());
         if (result.isEmpty() || result.size() != 1) {
             throw new Exception("channel匹配异常!!!");
         }
-        return proxyGroup.find(result.get(0));
+        return internalGroup.find(result.get(0));
     }
 }

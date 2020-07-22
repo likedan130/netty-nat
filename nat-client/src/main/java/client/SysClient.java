@@ -29,7 +29,7 @@ public class SysClient extends Client {
         //加载配置文件
         new PropertiesLoader().load(System.getProperty("user.dir"));
         cache = PropertiesCache.getInstance();
-        host = "192.168.0.174";
+        host = "127.0.0.1";
         port = 8080;
     }
 
