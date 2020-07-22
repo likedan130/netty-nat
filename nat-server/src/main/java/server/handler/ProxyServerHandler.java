@@ -1,5 +1,7 @@
 package server.handler;
 
+import core.utils.BufUtil;
+import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -11,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        System.out.println("代理服务channelRead0收到："+ctx + "...."+msg);
+        System.out.println("代理服务channelRead0收到：" + ByteUtil.toHexString(BufUtil.getArray(msg)));
         //收到外部请求先找配对的内容连接
         Channel proxyChannel = ctx.channel();
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
