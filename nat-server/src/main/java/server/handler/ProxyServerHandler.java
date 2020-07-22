@@ -6,6 +6,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import server.Server;
 import server.group.ServerChannelGroup;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +20,12 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel proxyChannel = ctx.channel();
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
             //已经存在配对，直接进行消息转发
-            ServerChannelGroup.getInternalByProxy(proxyChannel.id()).writeAndFlush(msg);
+            ServerChannelGroup.getInternalByProxy(proxyChannel.id()).writeAndFlush(msg).addListener(new GenericFutureListener<Future<? super Void>>() {
+                @Override
+                public void operationComplete(Future<? super Void> future) throws Exception {
+                    System.out.println(future.isSuccess());
+                }
+            });
         } else {
             //未配对的，先进行配对后，再消息转发
             ServerChannelGroup.forkChannel(ctx.channel());
@@ -28,7 +35,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("代理服务channelActive收到："+ctx);
+        System.out.println("代理服务channelActive收到："+ctx.channel());
         //新的连接建立后先进行配对
         ServerChannelGroup.forkChannel(ctx.channel());
     }
