@@ -8,7 +8,12 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.FixedLengthFrameDecoder;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.timeout.IdleStateHandler;
 import server.handler.ProxyServerHandler;
+import server.handler.ProxyServerHandler2;
+import server.handler.SysServerhandler;
 
 import java.util.Objects;
 
@@ -27,7 +32,8 @@ public class ProxyServer extends Server {
         ChannelInitializer<SocketChannel> channelInit = new ChannelInitializer<SocketChannel>(){
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new ProxyServerHandler());
+                ch.pipeline()
+                        .addLast(new ProxyServerHandler2());
             }
         };
         b.group(bossGroup, workerGroup)
@@ -37,8 +43,7 @@ public class ProxyServer extends Server {
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(8081).sync();
-        System.out.println("DeviceServer start proxy-server on port " + 8081+ "......");
-        //服务端管道关闭的监听器并同步阻塞,直到server channel关闭,线程才会往下执行,结束进程
+        System.out.println("SysServer start listen on port " + 8081 + "......");
         f.channel().closeFuture().sync();
     }
 
