@@ -29,6 +29,7 @@ public abstract class Server {
 
     public static ProxyServer proxyServer = new ProxyServer();
 
+
     protected void doShutdown(){
         try{
             if(bossGroup != null){

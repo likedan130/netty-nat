@@ -1,17 +1,16 @@
 package client.handler;
 
+import client.group.ClientChannelGroup;
 import client.handler.Processor.ConnectionPoolProcessor;
 import client.handler.Processor.HeartbeatProcessor;
 import client.handler.Processor.LoginProcessor;
 import core.constant.FrameConstant;
-import core.detection.PublicDetectionHandler;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
 import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import java.util.Date;
 
 /**
  * @Author wneck130@gmail.com
@@ -21,11 +20,10 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-//        System.out.println("SysClientHandler");
         //判断是否满足自定义协议
-        if(PublicDetectionHandler.detection(msg)){
-            return;
-        }
+//        if(PublicDetectionHandler.detection(msg)){
+//            return;
+//        }
         //协议中第10个字节为命令字，getByte中index从0开始
         byte cmd = msg.getByte(9);
         switch (cmd) {
@@ -34,12 +32,15 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
                 new LoginProcessor().process(ctx, msg);
                 break;
             case (byte)0x02:
-//                System.out.println("服务端响应心跳："+System.currentTimeMillis()/1000);
                 new HeartbeatProcessor().process(ctx, msg);
                 break;
             case (byte)0x03:
                 System.out.println("接收服务端连接池命令");
                 new ConnectionPoolProcessor().process(ctx, msg);
+                break;
+            case (byte)0x04:
+                System.out.println("启动代理服务");
+                ClientChannelGroup.forkProxyStartChannel();
                 break;
         }
     }

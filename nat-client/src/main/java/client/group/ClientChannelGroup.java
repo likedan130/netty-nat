@@ -72,21 +72,43 @@ public class ClientChannelGroup {
     }
 
     /**
-     * 根据传入的内部channel，fork出一条proxyChannel与之配对
+     * 从空闲连接池中取出一条连接并与当前proxy连接配对
      * @param channel
+     * @throws Exception
      */
-    public static Channel forkProxyChannel(Channel channel) throws Exception{
+    public synchronized static void forkChannel(Channel channel) throws Exception{
+//        while (true) {
+        if (!idleInternalGroup.isEmpty()) {
+            Channel idleChannel = idleInternalGroup.iterator().next();
+            idleInternalGroup.remove(idleChannel);
+            internalGroup.add(idleChannel);
+            channelPair.put(idleChannel.id(), channel.id());
+            proxyGroup.add(channel);
+            System.out.println("代理服务"+channel.id()+"与内部服务"+idleChannel.id()+"配对成功");
+        } else {
+            System.out.println("连接用尽，代理服务"+channel.id()+"配对失败!!!");
+        }
+//            Thread.sleep(0);
+//        }
+    }
+
+    /**
+     * 根据传入的内部channel，fork出一条proxyChannel与之配对
+     */
+    public static void forkProxyStartChannel() throws Exception{
         //获取代理连接
         ProxyClient proxyClient = new ProxyClient();
         proxyClient.init();
         ChannelFuture channelFuture = proxyClient.start();
         Channel proxyChannel = channelFuture.channel();
+        Channel channel = idleInternalGroup.iterator().next();
         //建立配对
         addChannelPair(channel, proxyChannel);
         addProxyChannel(proxyChannel);
         System.out.println("配对建立成功，"+channel.id() + ": "+proxyChannel.id());
-        return proxyChannel;
     }
+
+
 
     public static void addChannelPair(Channel internalChannel, Channel proxyChannel) {
         channelPair.put(internalChannel.id(), proxyChannel.id());

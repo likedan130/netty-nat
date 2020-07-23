@@ -18,7 +18,7 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("内部客户端channelActive收到："+ctx);
-        ClientChannelGroup.addInternalChannel(ctx.channel());
+        ClientChannelGroup.addIdleInternalChannel(ctx.channel());
     }
 
     @Override
@@ -45,8 +45,9 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
             });
         } else {
             //不存在配对时，先建立配对，再转发消息
-            System.out.println("未找到配对channel");
-            Channel proxyChannel = ClientChannelGroup.forkProxyChannel(ctx.channel());
+            System.out.println("InternalClientHandler未找到配对channel");
+            ClientChannelGroup.forkChannel(ctx.channel());
+            Channel proxyChannel = ClientChannelGroup.getProxyByInternal(channelId);
             byte[] message = new byte[msg.readableBytes()];
             msg.readBytes(message);
             ByteBuf byteBuf = Unpooled.buffer();

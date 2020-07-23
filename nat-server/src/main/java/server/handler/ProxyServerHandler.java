@@ -1,5 +1,7 @@
 package server.handler;
 
+import core.constant.FrameConstant;
+import core.enums.CommandEnum;
 import core.utils.BufUtil;
 import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
@@ -54,9 +56,26 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-//        System.out.println("代理服务channelActive收到："+ctx.channel());
         //新的连接建立后先进行配对
         ServerChannelGroup.forkChannel(ctx.channel());
+        System.out.println("代理服务");
+
+        //发送启动代理客户端
+        ByteBuf byteBuf = Unpooled.buffer();
+        byteBuf.writeByte(FrameConstant.pv);
+        long serial = System.currentTimeMillis();
+        byteBuf.writeLong(serial);
+        byteBuf.writeByte(CommandEnum.CMD_PROXY_START.getCmd());
+        byteBuf.writeShort(1);
+        //计算校验和
+        int vc = 0;
+        for (byte byteVal : BufUtil.getArray(byteBuf)) {
+            vc = vc + (byteVal & 0xFF);
+        }
+        byteBuf.writeByte(vc);
+        Channel channel = ServerChannelGroup.getSysChannel().get("Sys");
+        System.out.println("发送启动代理服务命令："+ channel.id());
+        channel.writeAndFlush(byteBuf);
     }
 
     @Override

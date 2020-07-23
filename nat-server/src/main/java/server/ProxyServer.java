@@ -38,7 +38,7 @@ public class ProxyServer extends Server {
 
         f = b.bind(27017).sync();
         System.out.println("SysServer start listen on port " + 27017 + "......");
-//        f.channel().closeFuture().sync();
+        f.channel().closeFuture().sync();
     }
 
     @Override

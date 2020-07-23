@@ -27,6 +27,11 @@ public class ServerChannelGroup {
     private static Map<ChannelId, ChannelId> channelPair = new ConcurrentHashMap<>();
 
     /**
+     * sysClient
+     */
+    private static ChannelGroup sysClient = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+
+    /**
      * 被代理服务的channel组
      */
     private static ChannelGroup proxyGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);

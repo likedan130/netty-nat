@@ -40,11 +40,12 @@ public class ProxyClient extends Client {
         });
 
         //连接服务器
-        f = client.connect("192.168.0.158",
-               27017).sync();
-        return f;
+        f = client.connect("rm-bp14yb5jkz9ih8vg21o.mysql.rds.aliyuncs.com",
+               3306).sync();
+        channel = f.channel();
         //阻塞主进程直到连接断开
 //        f.channel().closeFuture().sync();
+        return f;
     }
 
     /**
