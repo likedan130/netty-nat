@@ -17,6 +17,7 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("InternalClient-channelActive连接；"+ctx.channel().id());
         ClientChannelGroup.addIdleInternalChannel(ctx.channel());
     }
 
@@ -31,7 +32,7 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
         if (ClientChannelGroup.channelPairExist(channelId)) {
             //如果存在配对，直接转发消息
             Channel proxyChannel = ClientChannelGroup.getProxyByInternal(channelId);
-            System.out.println("找到配对channel:"+ proxyChannel.id());
+//            System.out.println("找到配对channel:"+ proxyChannel.id());
             byte[] message = new byte[msg.readableBytes()];
             msg.readBytes(message);
             ByteBuf byteBuf = Unpooled.buffer();
@@ -39,14 +40,14 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
             proxyChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
                 @Override
                 public void operationComplete(Future<? super Void> future) throws Exception {
-                    System.out.println("向被代理服务发送数据成功："+future.isSuccess());
+//                    System.out.println("向被代理服务发送数据成功："+future.isSuccess());
                 }
             });
         }else {
-            ClientChannelGroup.updateByInternalChannel(ctx.channel());
+//            ClientChannelGroup.updateByInternalChannel(ctx.channel());
             Channel proxyChannel = ClientChannelGroup.getProxyByInternal(channelId);
             if (proxyChannel != null) {
-                System.out.println("找到配对的代理channel:"+proxyChannel.id());
+//                System.out.println("找到配对的代理channel:"+proxyChannel.id());
                 byte[] message = new byte[msg.readableBytes()];
                 msg.readBytes(message);
                 ByteBuf byteBuf = Unpooled.buffer();
@@ -54,7 +55,7 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
                 proxyChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
                     @Override
                     public void operationComplete(Future<? super Void> future) throws Exception {
-                        System.out.println("向代理Channel回复消息成功"+future.isSuccess());
+//                        System.out.println("向代理Channel回复消息成功"+future.isSuccess());
                     }
                 });
             }

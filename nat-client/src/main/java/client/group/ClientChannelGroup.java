@@ -9,6 +9,7 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,6 +44,11 @@ public class ClientChannelGroup {
      */
     private static ChannelGroup idleInternalGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
+    /**
+     * 内部服务的channel组
+     */
+    private static List<Channel> idleInternalList = new ArrayList<>();
+
     public static void addSysChannel(Channel channel) {
         sysChannel.put("Sys", channel);
     }
@@ -68,7 +74,7 @@ public class ClientChannelGroup {
     }
 
     public static void addIdleInternalChannel(Channel channel) {
-        idleInternalGroup.add(channel);
+        idleInternalList.add(channel);
     }
 
     public static void updateByInternalChannel(Channel channel){
@@ -89,9 +95,9 @@ public class ClientChannelGroup {
         proxyClient.init();
         ChannelFuture channelFuture = proxyClient.start();
         Channel channel = channelFuture.channel();
-        if (!idleInternalGroup.isEmpty()) {
-            Channel idleChannel = idleInternalGroup.iterator().next();
-            idleInternalGroup.remove(idleChannel);
+        if (!idleInternalList.isEmpty()) {
+            Channel idleChannel = idleInternalList.get(0);
+            idleInternalList.remove(idleChannel);
             internalGroup.add(idleChannel);
             channelPair.put(idleChannel.id(), channel.id());
             proxyGroup.add(channel);
@@ -173,6 +179,7 @@ public class ClientChannelGroup {
      * @return
      */
     public static Channel getInternalByProxy(ChannelId channelId) throws Exception{
+        System.out.println("代理客户端与Service对应关系：" + channelPair.toString());
         List<ChannelId> result = channelPair.entrySet().stream()
                 .filter(e -> Objects.equals(e.getValue(), channelId))
                 .map((x) -> x.getKey())

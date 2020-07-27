@@ -7,9 +7,7 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -40,6 +38,11 @@ public class ServerChannelGroup {
      * 内部服务的channel组
      */
     private static ChannelGroup idleInternalGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+
+    /**
+     * 内部服务的channel组
+     */
+    private static List<Channel> idleInternalList = new ArrayList<>();
 
     public static void addSysChannel(Channel channel) {
         sysChannel.put("Sys", channel);
@@ -85,6 +88,9 @@ public class ServerChannelGroup {
         idleInternalGroup.remove(channel);
     }
 
+
+
+
     public static void updateByInternalChannel(Channel channel){
         addIdleInternalChannel(channel);
         channelPair.clear();
@@ -94,7 +100,7 @@ public class ServerChannelGroup {
     }
 
     public static void addIdleInternalChannel(Channel channel) {
-        idleInternalGroup.add(channel);
+        idleInternalList.add(channel);
     }
 
     /**
@@ -113,9 +119,9 @@ public class ServerChannelGroup {
      */
     public synchronized static void forkChannel(Channel channel) throws Exception{
 //        while (true) {
-        if (!idleInternalGroup.isEmpty()) {
-            Channel idleChannel = idleInternalGroup.iterator().next();
-            idleInternalGroup.remove(idleChannel);
+        if (!idleInternalList.isEmpty()) {
+            Channel idleChannel = idleInternalList.get(0);
+            idleInternalList.remove(idleChannel);
             internalGroup.add(idleChannel);
             channelPair.put(idleChannel.id(), channel.id());
             proxyGroup.add(channel);

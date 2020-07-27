@@ -38,6 +38,7 @@ public class InternalClient extends Client {
             //连接服务器
             ChannelFuture future = client.connect("127.0.0.1",
                     8082).sync();
+            Thread.sleep(1000);
 //            //阻塞主进程直到连接断开
 //            future.channel().closeFuture().sync();
         }

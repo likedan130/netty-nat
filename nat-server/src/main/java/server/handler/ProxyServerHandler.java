@@ -11,18 +11,24 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import server.Server;
 import server.group.ServerChannelGroup;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss.SSS");
+        System.out.println("ProxyServer-"+ctx.channel().id()+"-收到消息："+format.format(new Date()));
         System.out.println("代理服务channel:"+ctx.channel().id()+"收到：" + ByteUtil.toHexString(BufUtil.getArray(msg)));
         //收到外部请求先找配对的内容连接
         Channel proxyChannel = ctx.channel();
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
             //已经存在配对，直接进行消息转发
             Channel internalChannel = ServerChannelGroup.getInternalByProxy(proxyChannel.id());
-            System.out.println("找到配对的internalServer:"+internalChannel.id());
+//            System.out.println("找到配对的internalServer:"+internalChannel.id());
             byte[] message = new byte[msg.readableBytes()];
             msg.readBytes(message);
             ByteBuf byteBuf = Unpooled.buffer();
@@ -30,15 +36,15 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
             internalChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
                 @Override
                 public void operationComplete(Future<? super Void> future) throws Exception {
-                    System.out.println("成功向internalServer"+internalChannel.id()+"转发消息!!!"+future.isSuccess());
+//                    System.out.println("成功向internalServer"+internalChannel.id()+"转发消息!!!"+future.isSuccess());
                 }
             });
         } else {
             //未配对的，先进行配对后，再消息转发
-            System.out.println("未找到配对关系，进行配对");
+//            System.out.println("未找到配对关系，进行配对");
             ServerChannelGroup.forkChannel(ctx.channel());
             Channel internalChannel = ServerChannelGroup.getInternalByProxy(proxyChannel.id());
-            System.out.println("找到配对的internalServer:"+internalChannel.id());
+//            System.out.println("找到配对的internalServer:"+internalChannel.id());
             byte[] message = new byte[msg.readableBytes()];
             msg.readBytes(message);
             ByteBuf byteBuf = Unpooled.buffer();
@@ -46,7 +52,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
             internalChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
                 @Override
                 public void operationComplete(Future<? super Void> future) throws Exception {
-                    System.out.println("成功向internalServer"+internalChannel.id()+"转发消息!!!"+future.isSuccess());
+//                    System.out.println("成功向internalServer"+internalChannel.id()+"转发消息!!!"+future.isSuccess());
                 }
             });
         }
@@ -54,7 +60,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("代理服务channelActive收到："+ctx.channel().id()+";"+"连接时间："+System.currentTimeMillis()/1000);
+//        System.out.println("代理服务channelActive收到："+ctx.channel().id()+";"+"连接时间："+System.currentTimeMillis());
         //新的连接建立后先进行配对
         ServerChannelGroup.forkChannel(ctx.channel());
         //发送启动代理客户端
@@ -71,7 +77,6 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         }
         byteBuf.writeByte(vc);
         Channel channel = ServerChannelGroup.getSysChannel().get("Sys");
-        System.out.println("发送启动代理服务命令SysClientID："+ channel.id());
         channel.writeAndFlush(byteBuf);
         Thread.sleep(2000);
     }

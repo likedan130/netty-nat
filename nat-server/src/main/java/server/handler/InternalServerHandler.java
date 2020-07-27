@@ -36,7 +36,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
                 });
             }
         }else {
-            ServerChannelGroup.updateByInternalChannel(ctx.channel());
+//            ServerChannelGroup.updateByInternalChannel(ctx.channel());
             Channel proxyChannel = ServerChannelGroup.getProxyByInternal(channelId);
             if (proxyChannel != null) {
                 System.out.println("找到配对的代理服务channel:"+proxyChannel.id());
@@ -61,7 +61,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-//        System.out.println("内部服务channelActive");
+        System.out.println("内部服务channelActive:"+ctx.channel().id());
         //缓存InternalClient连接
         ServerChannelGroup.addIdleInternalChannel(ctx.channel());
 //        System.out.println("内部连接池组:"+ServerChannelGroup.getIdleInternalGroup());
