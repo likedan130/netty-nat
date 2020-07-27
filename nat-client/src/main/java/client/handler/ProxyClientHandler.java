@@ -30,63 +30,13 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
                         System.out.println("向internalChannel发送消息成功："+future.isSuccess());
                     }
                 });
-            }else {
-                System.out.println("ProxyClientHandler未找到配对channel");
-                ClientChannelGroup.forkChannel(ctx.channel());
-                Channel internalChannel = ClientChannelGroup.getInternalByProxy(ctx.channel().id());
-                if (internalChannel != null) {
-                    System.out.println("匹配到internalChannel");
-                    byte[] message = new byte[msg.readableBytes()];
-                    msg.readBytes(message);
-                    ByteBuf byteBuf = Unpooled.buffer();
-                    byteBuf.writeBytes(message);
-                    internalChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
-                        @Override
-                        public void operationComplete(Future<? super Void> future) throws Exception {
-                            System.out.println("向internalChannel发送消息成功：" + future.isSuccess());
-                        }
-                    });
-                }
-            }
-        }else {
-            ClientChannelGroup.forkChannel(ctx.channel());
-            Channel internalChannnel = ClientChannelGroup.getInternalByProxy(ctx.channel().id());
-            if (internalChannnel != null) {
-                System.out.println("匹配到internalChannel");
-                byte[] message = new byte[msg.readableBytes()];
-                msg.readBytes(message);
-                ByteBuf byteBuf = Unpooled.buffer();
-                byteBuf.writeBytes(message);
-                internalChannnel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
-                    @Override
-                    public void operationComplete(Future<? super Void> future) throws Exception {
-                        System.out.println("向internalChannel发送消息成功："+future.isSuccess());
-                    }
-                });
-            }else {
-                System.out.println("ProxyClientHandler未找到配对channel");
-                ClientChannelGroup.forkChannel(ctx.channel());
-                Channel internalChannel = ClientChannelGroup.getInternalByProxy(ctx.channel().id());
-                if (internalChannel != null) {
-                    System.out.println("匹配到internalChannel");
-                    byte[] message = new byte[msg.readableBytes()];
-                    msg.readBytes(message);
-                    ByteBuf byteBuf = Unpooled.buffer();
-                    byteBuf.writeBytes(message);
-                    internalChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
-                        @Override
-                        public void operationComplete(Future<? super Void> future) throws Exception {
-                            System.out.println("向internalChannel发送消息成功：" + future.isSuccess());
-                        }
-                    });
-                }
             }
         }
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("代理客户端channelActive收到："+ctx);
+        System.out.println("代理客户端channelActive收到："+ctx.channel().id());
     }
 
     @Override

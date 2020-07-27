@@ -16,7 +16,7 @@ public class ConnectionPoolProcessor implements Processor {
             //创建子线程启动内部连接池
             new Thread(()->{
                 try {
-                    internalClient.start(connectionNum);
+                   internalClient.start(connectionNum);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
