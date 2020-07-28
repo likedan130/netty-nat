@@ -89,7 +89,6 @@ public class ClientChannelGroup {
      * 根据传入的内部channel，fork出一条proxyChannel与之配对
      */
     public static void forkProxyChannel() throws Exception {
-
         //获取代理连接
         ProxyClient proxyClient = new ProxyClient();
         proxyClient.init();
@@ -105,7 +104,6 @@ public class ClientChannelGroup {
         } else {
             System.out.println("连接用尽，代理服务" + channel.id() + "配对失败!!!");
         }
-
     }
 
     public static void addChannelPair(Channel internalChannel, Channel proxyChannel) {
