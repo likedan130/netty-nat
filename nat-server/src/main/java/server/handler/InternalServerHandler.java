@@ -10,20 +10,19 @@ import io.netty.channel.ChannelId;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import lombok.extern.slf4j.Slf4j;
 import server.group.ServerChannelGroup;
-
+@Slf4j
 public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-//        System.out.println("--------");
-        System.out.println("内部服务channelRead0收到："+ctx.channel().id()+";"+ ByteUtil.toHexString(BufUtil.getArray(msg)));
+        log.info("内部服务channelRead0收到："+ctx.channel().id()+";"+ ByteUtil.toHexString(BufUtil.getArray(msg)));
         //通过内部的internalChannel收到响应详细，转发到代理服务的请求者
         ChannelId channelId = ctx.channel().id();
         if (ServerChannelGroup.channelPairExist(channelId)) {
             //已经存在配对的连接，直接发送，响应时无配对数据可能是channel断开连接导致的，结束消息传递
             Channel proxyChannel = ServerChannelGroup.getProxyByInternal(channelId);
             if (proxyChannel != null) {
-                System.out.println("找到配对的代理服务channel:"+proxyChannel.id());
                 byte[] message = new byte[msg.readableBytes()];
                 msg.readBytes(message);
                 ByteBuf byteBuf = Unpooled.buffer();
@@ -31,15 +30,13 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
                 proxyChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
                     @Override
                     public void operationComplete(Future<? super Void> future) throws Exception {
-                        System.out.println("向代理服务Channel回复消息成功"+future.isSuccess());
+                        log.info("向代理服务Channel回复消息成功:"+future.isSuccess());
                     }
                 });
             }
         }else {
-//            ServerChannelGroup.updateByInternalChannel(ctx.channel());
             Channel proxyChannel = ServerChannelGroup.getProxyByInternal(channelId);
             if (proxyChannel != null) {
-                System.out.println("找到配对的代理服务channel:"+proxyChannel.id());
                 byte[] message = new byte[msg.readableBytes()];
                 msg.readBytes(message);
                 ByteBuf byteBuf = Unpooled.buffer();
@@ -47,7 +44,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
                 proxyChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
                     @Override
                     public void operationComplete(Future<? super Void> future) throws Exception {
-                        System.out.println("向代理服务Channel回复消息成功"+future.isSuccess());
+                        log.info("向代理服务Channel回复消息成功:"+future.isSuccess());
                     }
                 });
             }
@@ -61,10 +58,8 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("内部服务channelActive:"+ctx.channel().id());
-        //缓存InternalClient连接
+        log.info("内部服务channelActive:"+ctx.channel().id());
         ServerChannelGroup.addIdleInternalChannel(ctx.channel());
-//        System.out.println("内部连接池组:"+ServerChannelGroup.getIdleInternalGroup());
     }
 
     /**

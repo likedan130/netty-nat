@@ -3,9 +3,10 @@ package client;
 import core.cache.PropertiesCache;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
-
+@Slf4j
 public class Client {
     protected EventLoopGroup group;
     protected ChannelFuture f;
@@ -28,9 +29,9 @@ public class Client {
             if(threadPoolExecutor != null){
                 threadPoolExecutor.shutdownNow();
             }
-            System.out.println("Server has been shutdown gracefully!");
+            log.info("Server has been shutdown gracefully!");
         }catch(Exception ex){
-            System.out.println("Error when shutdown server!!!");
+            log.error("Error when shutdown server!!!");
         }
     }
 
@@ -39,7 +40,7 @@ public class Client {
         runtime.addShutdownHook(new Thread(){
             @Override
             public void run() {
-                System.out.println("执行 addShutdownHook...");
+                log.info("执行 addShutdownHook...");
                 doShutdown();
             }
         });

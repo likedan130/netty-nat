@@ -10,6 +10,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
+import lombok.extern.slf4j.Slf4j;
 import server.handler.SysServerhandler;
 
 import java.util.Objects;
@@ -18,6 +19,7 @@ import java.util.Objects;
  * @Author wneck130@gmail.com
  * @Function netty服务端，用来和代理程序的客户端建立TCP连接，满足系统业务
  */
+@Slf4j
 public class SysServer extends Server {
 
     public void init() {
@@ -45,7 +47,7 @@ public class SysServer extends Server {
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(8080).sync();
-        System.out.println("SysServer start listen on port " + 8080 + "......");
+        log.info("SysServer start listen on port " + 8080 + "......");
         f.channel().closeFuture().sync();
     }
 

@@ -6,11 +6,12 @@ import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
+@Slf4j
 public class ServerChannelGroup {
 
     /**
@@ -89,16 +90,6 @@ public class ServerChannelGroup {
     }
 
 
-
-
-    public static void updateByInternalChannel(Channel channel){
-        addIdleInternalChannel(channel);
-        channelPair.clear();
-        channelPair.put(channel.id(),proxyGroup.iterator().next().id());
-        internalGroup.clear();
-        internalGroup.add(channel);
-    }
-
     public static void addIdleInternalChannel(Channel channel) {
         idleInternalList.add(channel);
     }
@@ -118,19 +109,16 @@ public class ServerChannelGroup {
      * @throws Exception
      */
     public synchronized static void forkChannel(Channel channel) throws Exception{
-//        while (true) {
         if (!idleInternalList.isEmpty()) {
             Channel idleChannel = idleInternalList.get(0);
             idleInternalList.remove(idleChannel);
             internalGroup.add(idleChannel);
             channelPair.put(idleChannel.id(), channel.id());
             proxyGroup.add(channel);
-            System.out.println("代理服务"+channel.id()+"与内部服务"+idleChannel.id()+"配对成功");
+            log.info("代理服务"+channel.id()+"与内部服务"+idleChannel.id()+"配对成功");
         } else {
-            System.out.println("连接用尽，代理服务"+channel.id()+"配对失败!!!");
+            log.error("连接用尽，代理服务"+channel.id()+"配对失败!!!");
         }
-//            Thread.sleep(0);
-//        }
     }
 
     /**
@@ -223,13 +211,13 @@ public class ServerChannelGroup {
      * @return
      */
     public static Channel getInternalByProxy(ChannelId channelId) throws Exception{
-        System.out.println("代理服务端与Client对应关系：" + channelPair.toString());
+        log.info("代理服务端与Client对应关系：" + channelPair.toString());
         List<ChannelId> result = channelPair.entrySet().stream()
                 .filter(e -> Objects.equals(e.getValue(), channelId))
                 .map((x) -> x.getKey())
                 .collect(Collectors.toList());
-        System.out.println(result.toString());
         if (result.isEmpty() || result.size() != 1) {
+            log.info("channel匹配异常!!!");
             throw new Exception("channel匹配异常!!!");
         }
         return internalGroup.find(result.get(0));

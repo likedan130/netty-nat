@@ -8,6 +8,7 @@ import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
+@Slf4j
 public class ClientChannelGroup {
 
     /**
@@ -77,14 +78,6 @@ public class ClientChannelGroup {
         idleInternalList.add(channel);
     }
 
-    public static void updateByInternalChannel(Channel channel){
-        addIdleInternalChannel(channel);
-        channelPair.clear();
-        channelPair.put(channel.id(),proxyGroup.iterator().next().id());
-        internalGroup.clear();
-        internalGroup.add(channel);
-    }
-
     /**
      * 根据传入的内部channel，fork出一条proxyChannel与之配对
      */
@@ -100,9 +93,9 @@ public class ClientChannelGroup {
             internalGroup.add(idleChannel);
             channelPair.put(idleChannel.id(), channel.id());
             proxyGroup.add(channel);
-            System.out.println("代理服务" + channel.id() + "与内部服务" + idleChannel.id() + "配对成功");
+            log.info("代理服务" + channel.id() + "与内部服务" + idleChannel.id() + "配对成功");
         } else {
-            System.out.println("连接用尽，代理服务" + channel.id() + "配对失败!!!");
+            log.error("连接用尽，代理服务" + channel.id() + "配对失败!!!");
         }
     }
 
@@ -177,12 +170,13 @@ public class ClientChannelGroup {
      * @return
      */
     public static Channel getInternalByProxy(ChannelId channelId) throws Exception{
-        System.out.println("代理客户端与Service对应关系：" + channelPair.toString());
+        log.info("代理客户端与Service对应关系：" + channelPair.toString());
         List<ChannelId> result = channelPair.entrySet().stream()
                 .filter(e -> Objects.equals(e.getValue(), channelId))
                 .map((x) -> x.getKey())
                 .collect(Collectors.toList());
         if (result.isEmpty() || result.size() != 1) {
+            log.error("channel匹配异常!!!");
             throw new Exception("channel匹配异常!!!");
         }
         return internalGroup.find(result.get(0));

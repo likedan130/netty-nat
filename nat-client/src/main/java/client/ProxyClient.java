@@ -8,11 +8,13 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Author wneck130@gmail.com
  * @Function netty代理客户端，用于连接被代理的服务
  */
+@Slf4j
 public class ProxyClient extends Client {
 
     private Channel channel;

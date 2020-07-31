@@ -3,6 +3,7 @@ package server;
 import core.cache.PropertiesCache;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.*;
  * @Author wneck130@gmail.com
  * @Function 服务基类
  */
+@Slf4j
 public abstract class Server {
 
     protected EventLoopGroup bossGroup;
@@ -42,9 +44,9 @@ public abstract class Server {
             if(threadPoolExecutor != null){
                 threadPoolExecutor.shutdownNow();
             }
-            System.out.println("Server has been shutdown gracefully!");
+            log.info("Server has been shutdown gracefully!");
         }catch(Exception ex){
-            System.out.println("Error when shutdown server!!!");
+            log.info("Error when shutdown server!!!");
         }
     }
 
@@ -53,7 +55,7 @@ public abstract class Server {
         runtime.addShutdownHook(new Thread(){
             @Override
             public void run() {
-                System.out.println("执行 addShutdownHook...");
+                log.info("执行 addShutdownHook...");
                 doShutdown();
             }
         });

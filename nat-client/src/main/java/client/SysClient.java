@@ -14,11 +14,13 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.HashedWheelTimer;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Author wneck130@gmail.com
  * @Function netty客户端，用于和代理程序的服务端建立连接，满足系统业务
  */
+@Slf4j
 public class SysClient extends Client {
 
     private static Bootstrap client = new Bootstrap();
@@ -75,6 +77,7 @@ public class SysClient extends Client {
             // 以下代码在synchronized同步块外面是安全的
             future.sync();
         } catch (Throwable t) {
+            log.error("connects to  fails", t);
             throw new Exception("connects to  fails", t);
         }
     }

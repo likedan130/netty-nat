@@ -4,10 +4,11 @@ import core.detection.PublicDetectionHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.extern.slf4j.Slf4j;
 import server.handler.processor.ConnectionPoolProcessor;
 import server.handler.processor.HeartbeatProcessor;
 import server.handler.processor.LoginProcessor;
-
+@Slf4j
 public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
     /**
      * 接收心跳时间
@@ -30,7 +31,7 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
             //心跳命令
             case 0x02:
                 time = System.currentTimeMillis();
-//                System.out.println("接收到客户心跳："+System.currentTimeMillis()/1000);
+//                log.info("接收到客户心跳："+System.currentTimeMillis()/1000);
                 new HeartbeatProcessor().process(ctx, msg);
                 break;
             //建立连接池命令
@@ -41,13 +42,12 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("sysClient连接成功");
+        log.info("sysClient连接成功");
         super.channelActive(ctx);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-//        System.out.println("客户端停止时间是："+new Date());
         super.channelInactive(ctx);
     }
 

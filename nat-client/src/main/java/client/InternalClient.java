@@ -7,11 +7,13 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Author wneck130@gmail.com
  * @Function netty客户端，用于和代理程序的服务端建立连接，以连接池的方式存在，传输代理的业务数据
  */
+@Slf4j
 public class InternalClient extends Client {
 
     public void init() {

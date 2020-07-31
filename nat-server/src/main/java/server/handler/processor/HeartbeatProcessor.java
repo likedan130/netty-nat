@@ -7,11 +7,12 @@ import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
+import lombok.extern.slf4j.Slf4j;
 import server.Server;
 import server.handler.SysServerhandler;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
+@Slf4j
 public class HeartbeatProcessor implements Processor {
 
     @Override
@@ -45,17 +46,13 @@ public class HeartbeatProcessor implements Processor {
         Server.scheduledExecutor.scheduleAtFixedRate(() -> {
             //得到心跳发送时间
             long time = SysServerhandler.time;
-//            System.out.println("执行");
             //首次连接不执行
             if(time != 0L) {
                 long endTime = System.currentTimeMillis();
-//                System.out.println("time:" + time / 1000);
-//                System.out.println("周期执行定时任务：" + endTime / 1000);
                 int interval = (int) (endTime - time) / 1000;
-//                System.out.println("心跳时间间隔：" + interval);
                 //如果间隔时间大于15秒则关闭channel
                 if (interval > NumberEnum.HEART_TATE_INTERVAL.getType()) {
-                    System.out.println("关闭通道");
+                    log.info("关闭通道");
                     //关闭链路
                     ctx.close();
                     //关闭

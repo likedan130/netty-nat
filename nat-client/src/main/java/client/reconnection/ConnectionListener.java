@@ -4,6 +4,8 @@ import client.SysClient;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoop;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -11,6 +13,7 @@ import java.util.concurrent.TimeUnit;
  * data 2020/7/21
  * 监听启动连接，失败重连
  */
+@Slf4j
 public class ConnectionListener implements ChannelFutureListener {
 
     private SysClient client = new SysClient();
@@ -26,7 +29,7 @@ public class ConnectionListener implements ChannelFutureListener {
             loop.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    System.err.println("服务端链接不上，开始重连操作...");
+                    log.error("服务端链接不上，开始重连操作...");
                     try{
                         client.init();
                         client.start();
@@ -36,7 +39,7 @@ public class ConnectionListener implements ChannelFutureListener {
                 }
             }, 3L, TimeUnit.SECONDS);
         } else {
-            System.err.println("服务端链接成功...");
+            log.error("服务端链接成功...");
         }
     }
 }

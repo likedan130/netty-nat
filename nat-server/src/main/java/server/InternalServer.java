@@ -8,10 +8,11 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 import server.handler.*;
 
 import java.util.Objects;
-
+@Slf4j
 public class InternalServer extends Server{
 
     public void init() {
@@ -37,7 +38,7 @@ public class InternalServer extends Server{
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(8082).sync();
-        System.out.println("DeviceServer start internal-server on port " + 8082 + "......");
+        log.info("InternalServer start internal-server on port " + 8082 + "......");
         //服务端管道关闭的监听器并同步阻塞,直到server channel关闭,线程才会往下执行,结束进程
         f.channel().closeFuture().sync();
     }

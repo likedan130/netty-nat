@@ -12,17 +12,20 @@ import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Date;
 
 /**
  * @Author wneck130@gmail.com
  * @Function 代理程序的系统业务处理器
  */
+@Slf4j
 public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-//        System.out.println("SysClientHandler");
+//        log.info("SysClientHandler");
         //判断是否满足自定义协议
 //        if(PublicDetectionHandler.detection(msg)){
 //            return;
@@ -31,19 +34,19 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         byte cmd = msg.getByte(9);
         switch (cmd) {
             case (byte)0x01:
-                System.out.println("服务端响应接入连接");
+                log.info("服务端响应接入连接");
                 new LoginProcessor().process(ctx, msg);
                 break;
             case (byte)0x02:
-//                System.out.println("服务端响应心跳："+System.currentTimeMillis()/1000);
+//                log.info("服务端响应心跳："+System.currentTimeMillis()/1000);
                 new HeartbeatProcessor().process(ctx, msg);
                 break;
             case (byte)0x03:
-                System.out.println("接收服务端连接池命令");
+                log.info("接收服务端连接池命令");
                 new ConnectionPoolProcessor().process(ctx, msg);
                 break;
             case (byte)0x04:
-                System.out.println("启动代理服务");
+                log.info("启动代理服务");
                 ClientChannelGroup.forkProxyChannel();
                 break;
         }
@@ -51,7 +54,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("sysServer连接成功");
+        log.info("sysServer连接成功");
         //TCP连接建立后，马上发送登录信息给服务端
         byte[] password = "password".getBytes("UTF-8");
         int passwordLen = password.length;
@@ -68,9 +71,8 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         for (byte byteVal : BufUtil.getArray(byteBuf)) {
             vc = vc + (byteVal & 0xFF);
         }
-//        System.out.println("client校验码："+ vc);
         byteBuf.writeByte(vc);
-        System.out.println(ByteUtil.toHexString(BufUtil.getArray(byteBuf)));
+        log.info(ByteUtil.toHexString(BufUtil.getArray(byteBuf)));
         ctx.writeAndFlush(byteBuf);
 
         //发送心跳命令
@@ -93,6 +95,5 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
     //服务端断开触发
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-//        System.out.println("服务端停止时间是："+new Date());
     }
 }

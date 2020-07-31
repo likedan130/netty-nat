@@ -7,14 +7,15 @@ import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import lombok.extern.slf4j.Slf4j;
 import server.Server;
 import server.group.ServerChannelGroup;
 import java.util.concurrent.TimeUnit;
-
+@Slf4j
 public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        System.out.println("代理服务channel:"+ctx.channel().id()+"收到：" + ByteUtil.toHexString(BufUtil.getArray(msg)));
+        log.info("代理服务channel:"+ctx.channel().id()+"收到：" + ByteUtil.toHexString(BufUtil.getArray(msg)));
         //收到外部请求先找配对的内容连接
         Channel proxyChannel = ctx.channel();
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {

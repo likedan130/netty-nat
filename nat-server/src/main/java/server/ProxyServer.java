@@ -8,9 +8,10 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 import server.handler.ProxyServerHandler;
 import java.util.Objects;
-
+@Slf4j
 public class ProxyServer extends Server {
 
     public void init() {
@@ -36,8 +37,8 @@ public class ProxyServer extends Server {
                 .childHandler(channelInit)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
-        f = b.bind(27017).sync();
-        System.out.println("SysServer start listen on port " + 27017 + "......");
+        f = b.bind(9000).sync();
+        log.info("ProxyServer start listen on port " + 9000 + "......");
         f.channel().closeFuture().sync();
     }
 

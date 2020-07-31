@@ -8,6 +8,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import lombok.extern.slf4j.Slf4j;
 import server.InternalServer;
 import server.ProxyServer;
 import server.Server;
@@ -19,6 +20,7 @@ import java.util.Objects;
  * @Author wneck130@gmail.com
  * @Function 登录命令处理器
  */
+@Slf4j
 public class LoginProcessor implements Processor {
 
     /**
@@ -48,7 +50,7 @@ public class LoginProcessor implements Processor {
                         e.printStackTrace();
                     }
                 }).start();
-                System.out.println("启动代理服务（ProxyServer）成功");
+                log.info("启动代理服务（ProxyServer）成功");
             }
             //判断内部服务是否活跃
             if (!Server.internalServer.isStarted()) {
@@ -62,7 +64,7 @@ public class LoginProcessor implements Processor {
                         e.printStackTrace();
                     }
                 }).start();
-                System.out.println("启动代理服务（InternalServer）成功");
+                log.info("启动代理服务（InternalServer）成功");
                 //响应客户端
                 ByteBuf byteBuf = Unpooled.buffer();
                 byteBuf.writeByte(FrameConstant.pv);
@@ -81,7 +83,7 @@ public class LoginProcessor implements Processor {
                 ctx.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        System.out.println("成功发送连接池命令");
+                        log.info("成功发送连接池命令");
                         if (future.isSuccess()) {
                             //立刻发送连接池的建立命令给客户端
                             ByteBuf byteBuf = Unpooled.buffer();
