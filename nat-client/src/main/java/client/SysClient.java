@@ -3,6 +3,7 @@ package client;
 import client.reconnection.AbstractConnectionWatchdog;
 import client.reconnection.ConnectionListener;
 import core.cache.PropertiesCache;
+import core.constant.NumberConstant;
 import core.frame.loader.PropertiesLoader;
 import client.handler.*;
 import io.netty.bootstrap.Bootstrap;
@@ -14,13 +15,16 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.HashedWheelTimer;
-import lombok.extern.slf4j.Slf4j;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.Slf4JLoggerFactory;
+
+import java.io.File;
 
 /**
  * @Author wneck130@gmail.com
  * @Function netty客户端，用于和代理程序的服务端建立连接，满足系统业务
  */
-@Slf4j
+
 public class SysClient extends Client {
 
     private static Bootstrap client = new Bootstrap();
@@ -28,11 +32,12 @@ public class SysClient extends Client {
     private int port;
 
     public void init() {
+        System.out.println(System.getProperty("user.dir")+ File.separator+"properties.properties");
         //加载配置文件
         new PropertiesLoader().load(System.getProperty("user.dir"));
         cache = PropertiesCache.getInstance();
-        host = "127.0.0.1";
-        port = 8080;
+        host = cache.get("internal.host");
+        port = cache.getInt("internal.port");
     }
 
     protected final HashedWheelTimer timer = new HashedWheelTimer();
@@ -51,8 +56,8 @@ public class SysClient extends Client {
             public ChannelHandler[] handlers() {
                 return new ChannelHandler[]{
                         this,
-                        new LengthFieldBasedFrameDecoder(65535, 10, 2),
-                        new IdleStateHandler(0, 0, 10),
+                        new LengthFieldBasedFrameDecoder(NumberConstant.SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_AND_THIRTY_FIVE, NumberConstant.TEN, NumberConstant.TWO),
+                        new IdleStateHandler(NumberConstant.ZERO, NumberConstant.ZERO, NumberConstant.TEN),
                         //加入自定义的handler
                         new SysClientHandler()
                 };
@@ -83,6 +88,7 @@ public class SysClient extends Client {
     }
 
     public static void main(String[] args) throws Exception {
+        InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
         SysClient sysClient = new SysClient();
         sysClient.init();
         sysClient.start();

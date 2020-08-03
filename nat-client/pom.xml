@@ -74,5 +74,15 @@
                 </executions>
             </plugin>
         </plugins>
+        <!--打包配置文件-->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 </project>

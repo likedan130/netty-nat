@@ -1,21 +1,19 @@
 package server.handler;
 
 import core.constant.FrameConstant;
+import core.constant.NumberConstant;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
-import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import lombok.extern.slf4j.Slf4j;
 import server.Server;
 import server.group.ServerChannelGroup;
 import java.util.concurrent.TimeUnit;
-@Slf4j
+
 public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        log.info("代理服务channel:"+ctx.channel().id()+"收到：" + ByteUtil.toHexString(BufUtil.getArray(msg)));
         //收到外部请求先找配对的内容连接
         Channel proxyChannel = ctx.channel();
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
@@ -48,16 +46,16 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_PROXY_START.getCmd());
-        byteBuf.writeShort(1);
+        byteBuf.writeShort(NumberConstant.ONE);
         //计算校验和
-        int vc = 0;
+        int vc = NumberConstant.ZERO;
         for (byte byteVal : BufUtil.getArray(byteBuf)) {
             vc = vc + (byteVal & 0xFF);
         }
         byteBuf.writeByte(vc);
         Channel channel = ServerChannelGroup.getSysChannel().get("Sys");
         channel.writeAndFlush(byteBuf);
-        Thread.sleep(2000);
+        Thread.sleep(NumberConstant.TWO_THOUSAND);
     }
 
     @Override
@@ -68,6 +66,6 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         ServerChannelGroup.removeChannelPair(internalChannel.id(), ctx.channel().id());
         Server.scheduledExecutor.schedule(
                 () -> ServerChannelGroup.releaseInternalChannel(ctx.channel()),
-                2, TimeUnit.SECONDS);
+                NumberConstant.TWO, TimeUnit.SECONDS);
     }
 }

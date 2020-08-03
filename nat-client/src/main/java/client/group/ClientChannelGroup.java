@@ -8,17 +8,17 @@ import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
-import lombok.extern.slf4j.Slf4j;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-@Slf4j
-public class ClientChannelGroup {
 
+public class ClientChannelGroup {
+   private final static Logger log = LoggerFactory.getLogger(ClientChannelGroup.class);
     /**
      * 系统连接的缓存
      */
@@ -93,7 +93,6 @@ public class ClientChannelGroup {
             internalGroup.add(idleChannel);
             channelPair.put(idleChannel.id(), channel.id());
             proxyGroup.add(channel);
-            log.info("代理服务" + channel.id() + "与内部服务" + idleChannel.id() + "配对成功");
         } else {
             log.error("连接用尽，代理服务" + channel.id() + "配对失败!!!");
         }
@@ -170,7 +169,6 @@ public class ClientChannelGroup {
      * @return
      */
     public static Channel getInternalByProxy(ChannelId channelId) throws Exception{
-        log.info("代理客户端与Service对应关系：" + channelPair.toString());
         List<ChannelId> result = channelPair.entrySet().stream()
                 .filter(e -> Objects.equals(e.getValue(), channelId))
                 .map((x) -> x.getKey())

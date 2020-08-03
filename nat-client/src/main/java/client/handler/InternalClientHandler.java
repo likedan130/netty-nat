@@ -1,25 +1,22 @@
 package client.handler;
 
 import client.group.ClientChannelGroup;
-import core.utils.BufUtil;
-import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @Author wneck130@gmail.com
  * @Function 代理程序内部连接客户端处理器
  */
-@Slf4j
 public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
-
+    private final Logger log = LoggerFactory.getLogger(InternalClientHandler.class);
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("InternalClient-channelActive连接；"+ctx.channel().id());
         ClientChannelGroup.addIdleInternalChannel(ctx.channel());
     }
 
@@ -29,7 +26,6 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        log.info("内部客户端channelRead0收到："+ctx.channel().id()+";"+ ByteUtil.toHexString(BufUtil.getArray(msg)));
         ChannelId channelId = ctx.channel().id();
         if (ClientChannelGroup.channelPairExist(channelId)) {
             //如果存在配对，直接转发消息

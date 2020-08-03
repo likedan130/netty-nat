@@ -2,19 +2,18 @@ package client;
 
 import client.handler.ProxyClientHandler;
 import core.cache.PropertiesCache;
+import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Author wneck130@gmail.com
  * @Function netty代理客户端，用于连接被代理的服务
  */
-@Slf4j
 public class ProxyClient extends Client {
 
     private Channel channel;
@@ -40,8 +39,8 @@ public class ProxyClient extends Client {
         });
 
         //连接服务器
-        f = client.connect("rm-bp14yb5jkz9ih8vg21o.mysql.rds.aliyuncs.com",
-               3306).sync();
+        f = client.connect(cache.get("proxy.client.host"),
+               cache.getInt("proxy.client.port")).sync();
         //阻塞主进程直到连接断开
 //        f.channel().closeFuture().sync();
         return f;
@@ -56,7 +55,7 @@ public class ProxyClient extends Client {
     public Channel getChannel(int timeout) throws Exception{
         long start = System.currentTimeMillis();
         while (true) {
-            Thread.sleep(0);
+            Thread.sleep(NumberConstant.ZERO);
             if (System.currentTimeMillis() - start >= timeout) {
                 throw new Exception("连接被代理服务超时!!!");
             }

@@ -2,6 +2,7 @@ package client.handler.Processor;
 
 import client.Client;
 import core.constant.FrameConstant;
+import core.constant.NumberConstant;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
@@ -19,14 +20,14 @@ public class HeartbeatProcessor implements Processor {
         long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_HEARTBEAT.getCmd());
-        byteBuf.writeShort(1);
+        byteBuf.writeShort(NumberConstant.ONE);
         //计算校验和
-        int vc = 0;
+        int vc = NumberConstant.ZERO;
         for (byte byteVal : BufUtil.getArray(byteBuf)) {
             vc = vc + (byteVal & 0xFF);
         }
         byteBuf.writeByte(vc);
         //10秒延迟发送
-        Client.scheduledExecutor.schedule(() -> ctx.writeAndFlush(byteBuf), 10, TimeUnit.SECONDS);
+        Client.scheduledExecutor.schedule(() -> ctx.writeAndFlush(byteBuf), NumberConstant.TEN, TimeUnit.SECONDS);
     }
 }

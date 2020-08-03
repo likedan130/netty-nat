@@ -5,44 +5,36 @@ import client.handler.Processor.ConnectionPoolProcessor;
 import client.handler.Processor.HeartbeatProcessor;
 import client.handler.Processor.LoginProcessor;
 import core.constant.FrameConstant;
+import core.constant.NumberConstant;
 import core.detection.PublicDetectionHandler;
 import core.enums.CommandEnum;
+import core.enums.StringEnum;
 import core.utils.BufUtil;
 import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @Author wneck130@gmail.com
  * @Function 代理程序的系统业务处理器
  */
-@Slf4j
 public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
-
+    Logger log = LoggerFactory.getLogger(SysClientHandler.class);
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-//        log.info("SysClientHandler");
-        //判断是否满足自定义协议
-//        if(PublicDetectionHandler.detection(msg)){
-//            return;
-//        }
         //协议中第10个字节为命令字，getByte中index从0开始
-        byte cmd = msg.getByte(9);
+        byte cmd = msg.getByte(NumberConstant.NINE);
         switch (cmd) {
             case (byte)0x01:
-                log.info("服务端响应接入连接");
                 new LoginProcessor().process(ctx, msg);
                 break;
             case (byte)0x02:
-//                log.info("服务端响应心跳："+System.currentTimeMillis()/1000);
                 new HeartbeatProcessor().process(ctx, msg);
                 break;
             case (byte)0x03:
-                log.info("接收服务端连接池命令");
                 new ConnectionPoolProcessor().process(ctx, msg);
                 break;
             case (byte)0x04:
@@ -54,25 +46,23 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("sysServer连接成功");
         //TCP连接建立后，马上发送登录信息给服务端
-        byte[] password = "password".getBytes("UTF-8");
+        byte[] password = StringEnum.LOGIN_PASSWORD.getValue().getBytes("UTF-8");
         int passwordLen = password.length;
         ByteBuf byteBuf = Unpooled.buffer();
         byteBuf.writeByte(FrameConstant.pv);
         long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
-        byteBuf.writeShort(1 + 1 + passwordLen);
+        byteBuf.writeShort(NumberConstant.ONE+ NumberConstant.ONE + passwordLen);
         byteBuf.writeByte(passwordLen);
         byteBuf.writeBytes(password);
         //计算校验和
-        int vc = 0;
+        int vc = NumberConstant.ZERO;
         for (byte byteVal : BufUtil.getArray(byteBuf)) {
             vc = vc + (byteVal & 0xFF);
         }
         byteBuf.writeByte(vc);
-        log.info(ByteUtil.toHexString(BufUtil.getArray(byteBuf)));
         ctx.writeAndFlush(byteBuf);
 
         //发送心跳命令
@@ -80,9 +70,9 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
         buf.writeByte(FrameConstant.pv);
         buf.writeLong(System.currentTimeMillis());
         buf.writeByte(CommandEnum.CMD_HEARTBEAT.getCmd());
-        buf.writeShort(1);
+        buf.writeShort(NumberConstant.ONE);
         //计算校验和
-        int vc1 = 0;
+        int vc1 = NumberConstant.ZERO;
         for (byte byteVal : BufUtil.getArray(buf)) {
             vc1 = vc1 + (byteVal & 0xFF);
         }

@@ -1,9 +1,11 @@
 package server;
 
 import core.cache.PropertiesCache;
+import core.constant.NumberConstant;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
@@ -11,18 +13,17 @@ import java.util.concurrent.*;
  * @Author wneck130@gmail.com
  * @Function 服务基类
  */
-@Slf4j
 public abstract class Server {
-
+    protected static final Logger log =LoggerFactory.getLogger(Server.class);
     protected EventLoopGroup bossGroup;
     protected EventLoopGroup workerGroup;
     protected ChannelFuture f;
     protected PropertiesCache cache;
-    private static int corePoolSize = Runtime.getRuntime().availableProcessors() * 2 + 1;
-    private static int maximumPoolSize = Runtime.getRuntime().availableProcessors() * 3;
-    private static int keepAliveTime = 10;
+    private static int corePoolSize = Runtime.getRuntime().availableProcessors() * NumberConstant.TWO + NumberConstant.ONE;
+    private static int maximumPoolSize = Runtime.getRuntime().availableProcessors() * NumberConstant.THREE;
+    private static int keepAliveTime = NumberConstant.TEN;
     public static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize,
-            maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(100),
+            maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(NumberConstant.ONE_HUNDRED),
             new ThreadPoolExecutor.DiscardOldestPolicy());
 
     public static ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -46,7 +47,7 @@ public abstract class Server {
             }
             log.info("Server has been shutdown gracefully!");
         }catch(Exception ex){
-            log.info("Error when shutdown server!!!");
+            log.error("Error when shutdown server!!!");
         }
     }
 

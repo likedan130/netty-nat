@@ -1,6 +1,7 @@
 package server;
 
 import core.cache.PropertiesCache;
+import core.constant.NumberConstant;
 import core.frame.loader.PropertiesLoader;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -10,18 +11,16 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
-import lombok.extern.slf4j.Slf4j;
 import server.handler.SysServerhandler;
 
+import java.io.File;
 import java.util.Objects;
 
 /**
  * @Author wneck130@gmail.com
  * @Function netty服务端，用来和代理程序的客户端建立TCP连接，满足系统业务
  */
-@Slf4j
 public class SysServer extends Server {
-
     public void init() {
         new PropertiesLoader().load(System.getProperty("user.dir"));
         cache = PropertiesCache.getInstance();
@@ -29,25 +28,25 @@ public class SysServer extends Server {
     }
 
     public void start() throws Exception{
-        bossGroup = new NioEventLoopGroup(1);
+        bossGroup = new NioEventLoopGroup(NumberConstant.ONE);
         workerGroup = new NioEventLoopGroup();
         ServerBootstrap b = new ServerBootstrap();
         ChannelInitializer<SocketChannel> channelInit = new ChannelInitializer<SocketChannel>(){
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(65535,10,2))
-                        .addLast(new IdleStateHandler(0, 0, 10))
+                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(NumberConstant.SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_AND_THIRTY_FIVE,NumberConstant.TEN,NumberConstant.TWO))
+                        .addLast(new IdleStateHandler(NumberConstant.ZERO, NumberConstant.ZERO, NumberConstant.TEN))
                         .addLast(new SysServerhandler());
             }
         };
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, 1024)
+                .option(ChannelOption.SO_BACKLOG, NumberConstant.ONE_THOUSAND_AND_TWENTY_FOUR)
                 .childHandler(channelInit)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
-        f = b.bind(8080).sync();
-        log.info("SysServer start listen on port " + 8080 + "......");
+        f = b.bind(cache.getInt("sys.server.port")).sync();
+        log.info("SysServer start listen on port " + cache.getInt("sys.server.port") + "......");
         f.channel().closeFuture().sync();
     }
 

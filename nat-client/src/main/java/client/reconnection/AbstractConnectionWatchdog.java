@@ -1,12 +1,14 @@
 package client.reconnection;
 
+import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.util.Timeout;
 import io.netty.util.Timer;
 import io.netty.util.TimerTask;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
@@ -16,10 +18,9 @@ import java.util.concurrent.TimeUnit;
  * 重连检测，当发现当前的链路不稳定关闭之后，进行10次重连
  * 2的倍数增涨重连间隔时长
  */
-@Slf4j
 @Sharable
 public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAdapter implements TimerTask, ChannelHandlerHolder {
-
+    private final Logger log = LoggerFactory.getLogger(AbstractConnectionWatchdog.class);
     /**
      * 连接信息
      */
@@ -62,7 +63,7 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
         log.info("当前链路已经激活了，重连尝试次数重新置为0");
-        attempts = 0;
+        attempts = NumberConstant.ZERO;
         ctx.fireChannelActive();
     }
 
@@ -72,10 +73,10 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
         log.info("链接关闭");
         if(reconnect){
             log.info("链接关闭，将进行重连");
-            if (attempts < 10) {
+            if (attempts < NumberConstant.TEN) {
                 attempts++;
                 //2的倍数增涨重连间隔时长
-                int timeout = 2 << attempts;
+                int timeout = NumberConstant.TWO << attempts;
                 timer.newTimeout(this, timeout, TimeUnit.SECONDS);
             }
         }
@@ -102,7 +103,6 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
                     ch.pipeline().addLast(handlers());
                 }
             });
-            log.info("尝试重连："+System.currentTimeMillis()/1000);
             future = bootstrap.connect(host,port);
         }
         //future对象
@@ -113,7 +113,7 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
                 boolean succeed = f.isSuccess();
                 //如果重连失败，则调用ChannelInactive方法，再次出发重连事件，一直尝试10次，如果失败则不再重连
                 if (!succeed) {
-                    log.info("重连失败");
+                    log.warn("重连失败");
                     f.channel().pipeline().fireChannelInactive();
                 }else{
                     log.info("重连成功");
