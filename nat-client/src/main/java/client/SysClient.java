@@ -32,7 +32,6 @@ public class SysClient extends Client {
     private int port;
 
     public void init() {
-        System.out.println(System.getProperty("user.dir")+ File.separator+"properties.properties");
         //加载配置文件
         new PropertiesLoader().load(System.getProperty("user.dir"));
         cache = PropertiesCache.getInstance();

@@ -5,10 +5,12 @@ import core.cache.PropertiesCache;
 import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Author wneck130@gmail.com
@@ -23,7 +25,8 @@ public class ProxyClient extends Client {
         cache = PropertiesCache.getInstance();
     }
 
-    public ChannelFuture start() throws InterruptedException {
+    public List<Object> start() throws Exception {
+        List<Object> list = new ArrayList<>();
         //通过Bootstrap启动服务端
         Bootstrap client = new Bootstrap();
         //定义线程组，处理读写和链接事件
@@ -37,13 +40,9 @@ public class ProxyClient extends Client {
                 ch.pipeline().addLast(new ProxyClientHandler());
             }
         });
-
-        //连接服务器
-        f = client.connect(cache.get("proxy.client.host"),
-               cache.getInt("proxy.client.port")).sync();
-        //阻塞主进程直到连接断开
-//        f.channel().closeFuture().sync();
-        return f;
+        list.add(cache);
+        list.add(client);
+        return list;
     }
 
 

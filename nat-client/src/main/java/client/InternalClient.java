@@ -2,12 +2,12 @@ package client;
 
 import core.cache.PropertiesCache;
 import client.handler.*;
-import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 /**
  * @Author wneck130@gmail.com
@@ -35,13 +35,21 @@ public class InternalClient extends Client {
                         ch.pipeline().addLast(new InternalClientHandler());
                     }
                 });
-        for (int i = 0;i < num; i++) {
-            //连接服务器
-            ChannelFuture future = client.connect(cache.get("internal.host"),
-                    cache.getInt("internal.server.port")).sync();
-            Thread.sleep(NumberConstant.TWO_HUNDRED);
-//            //阻塞主进程直到连接断开
-//            future.channel().closeFuture().sync();
+            startClient(num,cache,client);
+    }
+    private int startClient(int num,PropertiesCache cache,Bootstrap client) throws Exception{
+        //连接服务器
+        if(num > 0) {
+            client.connect(cache.get("internal.host"),
+                    cache.getInt("internal.server.port")).sync().addListener(new GenericFutureListener<Future<? super Void>>() {
+                @Override
+                public void operationComplete(Future<? super Void> future) throws Exception {
+                    if (future.isSuccess()) {
+                        startClient(num-1, cache, client);
+                    }
+                }
+            });
         }
+        return -1;
     }
 }

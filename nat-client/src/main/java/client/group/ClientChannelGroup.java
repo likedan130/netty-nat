@@ -1,6 +1,7 @@
 package client.group;
 
-import client.ProxyClient;
+import core.cache.PropertiesCache;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -10,10 +11,7 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -50,6 +48,8 @@ public class ClientChannelGroup {
      */
     private static List<Channel> idleInternalList = new ArrayList<>();
 
+    public static List<Object> proxyClient = new ArrayList<>();
+
     public static void addSysChannel(Channel channel) {
         sysChannel.put("Sys", channel);
     }
@@ -83,9 +83,10 @@ public class ClientChannelGroup {
      */
     public static void forkProxyChannel() throws Exception {
         //获取代理连接
-        ProxyClient proxyClient = new ProxyClient();
-        proxyClient.init();
-        ChannelFuture channelFuture = proxyClient.start();
+        PropertiesCache cache = (PropertiesCache)proxyClient.get(0);
+        Bootstrap client = (Bootstrap)proxyClient.get(1);
+        ChannelFuture channelFuture = client.connect(cache.get("proxy.client.host"),
+                cache.getInt("proxy.client.port")).sync();
         Channel channel = channelFuture.channel();
         if (!idleInternalList.isEmpty()) {
             Channel idleChannel = idleInternalList.get(0);

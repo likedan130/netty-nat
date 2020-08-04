@@ -55,7 +55,6 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         byteBuf.writeByte(vc);
         Channel channel = ServerChannelGroup.getSysChannel().get("Sys");
         channel.writeAndFlush(byteBuf);
-        Thread.sleep(NumberConstant.TWO_THOUSAND);
     }
 
     @Override
