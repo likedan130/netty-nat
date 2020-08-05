@@ -2,6 +2,7 @@ package client;
 
 import core.cache.PropertiesCache;
 import client.handler.*;
+import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -37,9 +38,9 @@ public class InternalClient extends Client {
                 });
             startClient(num,cache,client);
     }
-    private int startClient(int num,PropertiesCache cache,Bootstrap client) throws Exception{
+    private void startClient(int num,PropertiesCache cache,Bootstrap client) throws Exception{
         //连接服务器
-        if(num > 0) {
+        if(num > NumberConstant.ZERO) {
             client.connect(cache.get("internal.host"),
                     cache.getInt("internal.server.port")).sync().addListener(new GenericFutureListener<Future<? super Void>>() {
                 @Override
@@ -50,6 +51,5 @@ public class InternalClient extends Client {
                 }
             });
         }
-        return -1;
     }
 }

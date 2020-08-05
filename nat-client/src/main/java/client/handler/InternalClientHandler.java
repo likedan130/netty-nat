@@ -1,6 +1,7 @@
 package client.handler;
 
 import client.group.ClientChannelGroup;
+import core.constant.NumberConstant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -26,6 +27,12 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+        //连接ProxyClient，缓存关联关系（完成释放阻塞）
+        while (true){
+            if(ClientChannelGroup.connectProxy == NumberConstant.ZERO){
+                break;
+            }
+        }
         ChannelId channelId = ctx.channel().id();
         if (ClientChannelGroup.channelPairExist(channelId)) {
             //如果存在配对，直接转发消息

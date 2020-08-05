@@ -39,7 +39,9 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
                 break;
             case (byte)0x04:
                 log.info("启动代理服务");
+                ++ClientChannelGroup.connectProxy;
                 ClientChannelGroup.forkProxyChannel();
+                --ClientChannelGroup.connectProxy;
                 break;
         }
     }

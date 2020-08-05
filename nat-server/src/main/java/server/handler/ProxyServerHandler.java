@@ -7,6 +7,8 @@ import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import server.Server;
 import server.group.ServerChannelGroup;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +56,16 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         }
         byteBuf.writeByte(vc);
         Channel channel = ServerChannelGroup.getSysChannel().get("Sys");
-        channel.writeAndFlush(byteBuf);
+        channel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
+            @Override
+            public void operationComplete(Future<? super Void> future) throws Exception {
+                while (true){
+                    if(future.isSuccess()){
+                        break;
+                    }
+                }
+            }
+        });
     }
 
     @Override

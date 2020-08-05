@@ -1,6 +1,7 @@
 package client.group;
 
 import core.cache.PropertiesCache;
+import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -47,6 +48,11 @@ public class ClientChannelGroup {
      * 内部服务的channel组
      */
     private static List<Channel> idleInternalList = new ArrayList<>();
+
+    /**
+     * 连接代理客户端缓存关联关系，同步
+     */
+    public static int connectProxy = NumberConstant.ZERO;
 
     public static List<Object> proxyClient = new ArrayList<>();
 
