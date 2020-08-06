@@ -29,6 +29,5 @@ public class ConnectionPoolProcessor implements Processor {
             e.printStackTrace();
             ctx.close();
         }
-
     }
 }

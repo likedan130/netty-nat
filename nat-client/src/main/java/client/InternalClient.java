@@ -16,6 +16,8 @@ import io.netty.util.concurrent.GenericFutureListener;
  */
 public class InternalClient extends Client {
 
+
+
     public void init() {
         cache = PropertiesCache.getInstance();
     }

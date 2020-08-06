@@ -94,7 +94,7 @@ public class LoginProcessor implements Processor {
                             byteBuf.writeLong(serial);
                             byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
                             byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
-                            byteBuf.writeByte(NumberConstant.TWENTY);//连接池数量
+                            byteBuf.writeByte(NumberConstant.FIFTY);//连接池数量
                             //计算校验和
                             int vc = NumberConstant.ZERO;
                             for (byte byteVal : BufUtil.getArray(byteBuf)) {

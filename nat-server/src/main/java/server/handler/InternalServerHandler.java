@@ -6,14 +6,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import server.group.ServerChannelGroup;
 
 public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
-    private final Logger log = LoggerFactory.getLogger(InternalServerHandler.class);
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         //通过内部的internalChannel收到响应详细，转发到代理服务的请求者
@@ -26,12 +21,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
                 msg.readBytes(message);
                 ByteBuf byteBuf = Unpooled.buffer();
                 byteBuf.writeBytes(message);
-                proxyChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
-                    @Override
-                    public void operationComplete(Future<? super Void> future) throws Exception {
-                        log.debug("向代理服务Channel回复消息成功:"+future.isSuccess());
-                    }
-                });
+                proxyChannel.writeAndFlush(byteBuf);
             }
         }else {
             Channel proxyChannel = ServerChannelGroup.getProxyByInternal(channelId);
@@ -40,12 +30,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
                 msg.readBytes(message);
                 ByteBuf byteBuf = Unpooled.buffer();
                 byteBuf.writeBytes(message);
-                proxyChannel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
-                    @Override
-                    public void operationComplete(Future<? super Void> future) throws Exception {
-                        log.debug("向代理服务Channel回复消息成功:"+future.isSuccess());
-                    }
-                });
+                proxyChannel.writeAndFlush(byteBuf);
             }
         }
     }
@@ -57,6 +42,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("InternalServer:"+ctx.channel().id());
         ServerChannelGroup.addIdleInternalChannel(ctx.channel());
     }
 

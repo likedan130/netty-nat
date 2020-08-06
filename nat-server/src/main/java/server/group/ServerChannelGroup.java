@@ -49,6 +49,10 @@ public class ServerChannelGroup {
         sysChannel.put("Sys", channel);
     }
 
+    public static List<Channel> getIdleInternalList(){
+        return idleInternalList;
+    }
+
     public static Map<String, Channel> getSysChannel() {
         return sysChannel;
     }

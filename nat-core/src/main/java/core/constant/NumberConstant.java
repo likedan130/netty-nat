@@ -22,6 +22,7 @@ public class NumberConstant {
     public static int FIFTEEN = 15;
     public static int HEARTBEAT_TIMEOUT_FIFTEEN = 15;
     public static int TWENTY= 20;
+    public static int FIFTY= 50;
     public static int ONE_HUNDRED = 100;
     public static int TWO_HUNDRED = 200;
     public static int ONE_THOUSAND_AND_TWENTY_FOUR = 1024;

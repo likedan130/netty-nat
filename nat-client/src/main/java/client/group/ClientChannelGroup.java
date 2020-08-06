@@ -56,6 +56,18 @@ public class ClientChannelGroup {
 
     public static List<Object> proxyClient = new ArrayList<>();
 
+    public static List<Channel> getIdleInternalList(){
+        return idleInternalList;
+    }
+
+    public static Map<ChannelId, ChannelId> getChannelPair(){
+        return channelPair;
+    }
+
+    public static ChannelGroup getInternalGroup(){
+        return internalGroup;
+    }
+
     public static void addSysChannel(Channel channel) {
         sysChannel.put("Sys", channel);
     }
@@ -84,10 +96,36 @@ public class ClientChannelGroup {
         idleInternalList.add(channel);
     }
 
+
     /**
      * 根据传入的内部channel，fork出一条proxyChannel与之配对
      */
-    public static void forkProxyChannel() throws Exception {
+    public static synchronized Channel proxyNotExist(Channel channel) throws Exception {
+
+        //获取代理连接
+        PropertiesCache cache = (PropertiesCache)proxyClient.get(0);
+        Bootstrap client = (Bootstrap)proxyClient.get(1);
+        ChannelFuture channelFuture = client.connect(cache.get("proxy.client.host"),
+                cache.getInt("proxy.client.port")).sync();
+        Channel channel1 = channelFuture.channel();
+        if(idleInternalList.contains(channel)) {
+            idleInternalList.remove(channel);
+        }
+        if (!internalGroup.contains(channel)) {
+            internalGroup.add(channel);
+        }
+        channelPair.remove(channel.id());
+        channelPair.put(channel.id(),channel1.id());
+        if(!proxyGroup.contains(channel1)){
+            proxyGroup.add(channel1);
+        }
+        return channel1;
+    }
+
+    /**
+     * 根据传入的内部channel，fork出一条proxyChannel与之配对
+     */
+    public static synchronized void forkProxyChannel() throws Exception {
         //获取代理连接
         PropertiesCache cache = (PropertiesCache)proxyClient.get(0);
         Bootstrap client = (Bootstrap)proxyClient.get(1);

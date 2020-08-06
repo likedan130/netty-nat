@@ -14,6 +14,7 @@ import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import lombok.Synchronized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,9 +40,7 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
                 break;
             case (byte)0x04:
                 log.info("启动代理服务");
-                ++ClientChannelGroup.connectProxy;
                 ClientChannelGroup.forkProxyChannel();
-                --ClientChannelGroup.connectProxy;
                 break;
         }
     }

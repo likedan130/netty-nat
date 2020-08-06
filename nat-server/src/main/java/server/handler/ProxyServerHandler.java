@@ -7,8 +7,6 @@ import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import server.Server;
 import server.group.ServerChannelGroup;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +38,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("代理服务连接成功");
         //新的连接建立后先进行配对
         ServerChannelGroup.forkChannel(ctx.channel());
         //发送启动代理客户端
@@ -56,16 +55,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         }
         byteBuf.writeByte(vc);
         Channel channel = ServerChannelGroup.getSysChannel().get("Sys");
-        channel.writeAndFlush(byteBuf).addListener(new GenericFutureListener<Future<? super Void>>() {
-            @Override
-            public void operationComplete(Future<? super Void> future) throws Exception {
-                while (true){
-                    if(future.isSuccess()){
-                        break;
-                    }
-                }
-            }
-        });
+        channel.writeAndFlush(byteBuf);
     }
 
     @Override
@@ -75,7 +65,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         //如果是proxy连接断开，将之前配对的internal连接移除配对，并在2秒后回归空闲连接池，相当于有2秒的time_wait状态
         ServerChannelGroup.removeChannelPair(internalChannel.id(), ctx.channel().id());
         Server.scheduledExecutor.schedule(
-                () -> ServerChannelGroup.releaseInternalChannel(ctx.channel()),
+                () -> ServerChannelGroup.releaseInternalChannel(internalChannel),
                 NumberConstant.TWO, TimeUnit.SECONDS);
     }
 }
