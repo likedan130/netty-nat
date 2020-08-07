@@ -6,15 +6,12 @@ import client.handler.Processor.HeartbeatProcessor;
 import client.handler.Processor.LoginProcessor;
 import core.constant.FrameConstant;
 import core.constant.NumberConstant;
-import core.detection.PublicDetectionHandler;
 import core.enums.CommandEnum;
 import core.enums.StringEnum;
 import core.utils.BufUtil;
-import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import lombok.Synchronized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +37,9 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
                 break;
             case (byte)0x04:
                 log.info("启动代理服务");
+                ClientChannelGroup.connectProxy = ++ClientChannelGroup.connectProxy;
                 ClientChannelGroup.forkProxyChannel();
+                ClientChannelGroup.connectProxy = --ClientChannelGroup.connectProxy;
                 break;
         }
     }
@@ -86,5 +85,24 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
     //服务端断开触发
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    }
+
+    /**
+     * 通道异常触发
+     * @param ctx
+     * @param cause
+     * @throws Exception
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        Channel channel = ctx.channel();
+        if(!channel.isActive()){
+            log.info("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            cause.printStackTrace();
+            ctx.close();
+        }else{
+            ctx.fireExceptionCaught(cause);
+            log.info("###############",cause);
+        }
     }
 }

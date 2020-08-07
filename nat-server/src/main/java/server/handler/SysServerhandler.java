@@ -2,13 +2,17 @@ package server.handler;
 
 import core.constant.NumberConstant;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.handler.processor.ConnectionPoolProcessor;
 import server.handler.processor.HeartbeatProcessor;
 import server.handler.processor.LoginProcessor;
 
 public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
+    private static final Logger logger = LoggerFactory.getLogger(SysServerhandler.class);
     /**
      * 接收心跳时间
      */
@@ -44,4 +48,22 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
         super.channelInactive(ctx);
     }
 
+    /**
+     * 通道异常触发
+     * @param ctx
+     * @param cause
+     * @throws Exception
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        Channel channel = ctx.channel();
+        if(!channel.isActive()){
+            logger.info("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            cause.printStackTrace();
+            ctx.close();
+        }else{
+            ctx.fireExceptionCaught(cause);
+            logger.info("###############",cause);
+        }
+    }
 }
