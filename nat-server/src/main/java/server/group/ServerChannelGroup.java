@@ -35,10 +35,6 @@ public class ServerChannelGroup {
      */
     private static ChannelGroup internalGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-    /**
-     * 内部服务的channel组
-     */
-    private static ChannelGroup idleInternalGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     /**
      * 内部服务的channel组
@@ -69,9 +65,6 @@ public class ServerChannelGroup {
         return internalGroup;
     }
 
-    public static ChannelGroup getIdleInternalGroup() {
-        return idleInternalGroup;
-    }
 
     public static void addProxyChannel(Channel channel) {
         proxyGroup.add(channel);
@@ -90,7 +83,7 @@ public class ServerChannelGroup {
     }
 
     public static void removeIdleInternalChannel(Channel channel) {
-        idleInternalGroup.remove(channel);
+        idleInternalList.remove(channel);
     }
 
 
@@ -104,7 +97,7 @@ public class ServerChannelGroup {
      */
     public static void releaseInternalChannel(Channel channel) {
         internalGroup.remove(channel);
-        idleInternalGroup.add(channel);
+        idleInternalList.add(channel);
     }
 
     /**

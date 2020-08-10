@@ -3,7 +3,6 @@ package server.handler.processor;
 import core.constant.FrameConstant;
 import core.constant.NumberConstant;
 import core.enums.CommandEnum;
-import core.enums.NumberEnum;
 import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
