@@ -18,7 +18,6 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("InternalClientHandler:"+ctx.channel().id());
         ClientChannelGroup.addIdleInternalChannel(ctx.channel());
     }
 
@@ -76,12 +75,12 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         if(!channel.isActive()){
-            logger.info("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            logger.debug("客户端："+ channel.remoteAddress()+ "  断开了连接！");
             cause.printStackTrace();
             ctx.close();
         }else{
             ctx.fireExceptionCaught(cause);
-            logger.info("###############",cause);
+            logger.debug("异常："+cause);
         }
     }
 }

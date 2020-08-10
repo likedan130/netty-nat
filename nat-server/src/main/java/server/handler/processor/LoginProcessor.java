@@ -52,7 +52,7 @@ public class LoginProcessor implements Processor {
                         e.printStackTrace();
                     }
                 }).start();
-                log.info("启动代理服务（ProxyServer）成功");
+                log.debug("启动代理服务（ProxyServer）成功");
             }
             //判断内部服务是否活跃
             if (!Server.internalServer.isStarted()) {
@@ -66,7 +66,7 @@ public class LoginProcessor implements Processor {
                         e.printStackTrace();
                     }
                 }).start();
-                log.info("启动代理服务（InternalServer）成功");
+                log.debug("启动代理服务（InternalServer）成功");
                 //响应客户端
                 ByteBuf byteBuf = Unpooled.buffer();
                 byteBuf.writeByte(FrameConstant.pv);
@@ -85,7 +85,6 @@ public class LoginProcessor implements Processor {
                 ctx.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        log.info("成功发送连接池命令");
                         if (future.isSuccess()) {
                             //立刻发送连接池的建立命令给客户端
                             ByteBuf byteBuf = Unpooled.buffer();
@@ -94,7 +93,7 @@ public class LoginProcessor implements Processor {
                             byteBuf.writeLong(serial);
                             byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
                             byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
-                            byteBuf.writeByte(NumberConstant.FIFTY);//连接池数量
+                            byteBuf.writeByte(30);//连接池数量
                             //计算校验和
                             int vc = NumberConstant.ZERO;
                             for (byte byteVal : BufUtil.getArray(byteBuf)) {

@@ -39,7 +39,7 @@ public class ConnectionListener implements ChannelFutureListener {
                 }
             }, 3L, TimeUnit.SECONDS);
         } else {
-            log.info("服务端链接成功...");
+            log.debug("服务端链接成功...");
         }
     }
 }

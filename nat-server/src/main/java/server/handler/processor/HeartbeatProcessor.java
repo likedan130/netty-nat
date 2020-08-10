@@ -53,7 +53,7 @@ public class HeartbeatProcessor implements Processor {
                 int interval = (int) (endTime - time) / 1000;
                 //如果间隔时间大于15秒则关闭channel
                 if (interval > NumberConstant.HEARTBEAT_TIMEOUT_FIFTEEN) {
-                    log.info("关闭通道");
+                    log.debug("关闭通道");
                     //关闭链路
                     ctx.close();
                     //关闭

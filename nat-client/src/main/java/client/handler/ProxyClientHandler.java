@@ -14,8 +14,11 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static final Logger logger = LoggerFactory.getLogger(ProxyClientHandler.class);
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+        //判断是否已经建立配对关系
         if (ClientChannelGroup.channelPairExist(ctx.channel().id())) {
+            //获取内部客户端
             Channel internalChannnel = ClientChannelGroup.getInternalByProxy(ctx.channel().id());
+            //判断客户端channel是否活跃
             if (internalChannnel != null && internalChannnel.isActive()) {
                 byte[] message = new byte[msg.readableBytes()];
                 msg.readBytes(message);
@@ -32,12 +35,10 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("代理客户端连接成功："+ctx.channel().id());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("代理客户端断开："+ctx.channel().id());
         super.channelInactive(ctx);
     }
 
@@ -51,12 +52,12 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         if(!channel.isActive()){
-            logger.info("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            logger.debug("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
             cause.printStackTrace();
             ctx.close();
         }else{
             ctx.fireExceptionCaught(cause);
-            logger.info("###############",cause);
+            logger.debug("###############",cause);
         }
     }
 }

@@ -39,7 +39,7 @@ public class InternalServer extends Server{
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(cache.getInt("internal.server.port")).sync();
-        log.info("InternalServer start internal-server on port " + cache.getInt("internal.server.port") + "......");
+        log.debug("InternalServer start internal-server on port " + cache.getInt("internal.server.port") + "......");
         //服务端管道关闭的监听器并同步阻塞,直到server channel关闭,线程才会往下执行,结束进程
         f.channel().closeFuture().sync();
     }

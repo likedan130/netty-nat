@@ -61,8 +61,6 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-
-        log.info("当前链路已经激活了，重连尝试次数重新置为0");
         attempts = NumberConstant.ZERO;
         ctx.fireChannelActive();
     }
@@ -70,9 +68,9 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
     //客户端断开触发
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.info("链接关闭");
+        log.debug("链接关闭");
         if(reconnect){
-            log.info("链接关闭，将进行重连");
+            log.debug("链接关闭，将进行重连");
             if (attempts < NumberConstant.TEN) {
                 attempts++;
                 //2的倍数增涨重连间隔时长
@@ -116,7 +114,7 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
                     log.warn("重连失败");
                     f.channel().pipeline().fireChannelInactive();
                 }else{
-                    log.info("重连成功");
+                    log.debug("重连成功");
                 }
             }
         });

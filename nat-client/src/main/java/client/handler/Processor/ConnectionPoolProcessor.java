@@ -24,6 +24,7 @@ public class ConnectionPoolProcessor implements Processor {
             //启动代理服务
             proxyClient.init();
             List<Object> list = proxyClient.start();
+            //按顺序存储proxyClient启动信息
             ClientChannelGroup.proxyClient.addAll(list);
         } catch (Exception e) {
             e.printStackTrace();

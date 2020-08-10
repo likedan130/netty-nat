@@ -45,9 +45,9 @@ public abstract class Server {
             if(threadPoolExecutor != null){
                 threadPoolExecutor.shutdownNow();
             }
-            log.info("Server has been shutdown gracefully!");
+            log.debug("Server has been shutdown gracefully!");
         }catch(Exception ex){
-            log.error("Error when shutdown server!!!");
+            log.debug("Error when shutdown server!!!");
         }
     }
 
@@ -56,7 +56,7 @@ public abstract class Server {
         runtime.addShutdownHook(new Thread(){
             @Override
             public void run() {
-                log.info("执行 addShutdownHook...");
+                log.debug("执行 addShutdownHook...");
                 doShutdown();
             }
         });

@@ -36,10 +36,13 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
                 new ConnectionPoolProcessor().process(ctx, msg);
                 break;
             case (byte)0x04:
-                log.info("启动代理服务");
+                log.debug("启动代理服务");
                 ClientChannelGroup.connectProxy = ++ClientChannelGroup.connectProxy;
                 ClientChannelGroup.forkProxyChannel();
                 ClientChannelGroup.connectProxy = --ClientChannelGroup.connectProxy;
+                break;
+            case (byte)0x05:
+                ClientChannelGroup.connectionPoolExpansion(msg);
                 break;
         }
     }
@@ -97,12 +100,12 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         if(!channel.isActive()){
-            log.info("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            log.debug("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
             cause.printStackTrace();
             ctx.close();
         }else{
             ctx.fireExceptionCaught(cause);
-            log.info("###############",cause);
+            log.debug("###############",cause);
         }
     }
 }

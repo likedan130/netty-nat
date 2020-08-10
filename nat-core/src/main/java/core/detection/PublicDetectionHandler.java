@@ -43,8 +43,6 @@ public class PublicDetectionHandler {
         //接入命令
         if(cmd == CommandEnum.CMD_LOGIN.getCmd()){
             int vc = msg.getByte(21);
-            System.out.println("server校验码:"+vc);
-
          }
         //心跳命令
         if(cmd == CommandEnum.CMD_HEARTBEAT.getCmd()){
@@ -55,19 +53,5 @@ public class PublicDetectionHandler {
 
         }
         return false;
-    }
-
-    public static void main(String[] args) {
-        String[] s = new String[]{"a","b","c"};
-        System.out.println(Arrays.toString(s));
-        s = Arrays.copyOf(s,s.length-1);
-        System.out.println(Arrays.toString(s));
-
-        byte[] bytes = new byte[4];
-        bytes[0] = (byte)1609;
-        bytes[1] = (byte) (1609 >> 8);
-        bytes[2] = (byte) (1609 >> 16);
-        bytes[3] = (byte) (1609 >> 24);
-        System.out.println(Arrays.toString(bytes));
     }
 }

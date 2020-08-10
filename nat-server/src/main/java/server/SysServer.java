@@ -46,7 +46,7 @@ public class SysServer extends Server {
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(cache.getInt("sys.server.port")).sync();
-        log.info("SysServer start listen on port " + cache.getInt("sys.server.port") + "......");
+        log.debug("SysServer start listen on port " + cache.getInt("sys.server.port") + "......");
         f.channel().closeFuture().sync();
     }
 

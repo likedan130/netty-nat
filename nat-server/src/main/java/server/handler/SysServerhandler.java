@@ -58,12 +58,12 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         if(!channel.isActive()){
-            logger.info("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            logger.debug("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
             cause.printStackTrace();
             ctx.close();
         }else{
             ctx.fireExceptionCaught(cause);
-            logger.info("###############",cause);
+            logger.debug("###############",cause);
         }
     }
 }

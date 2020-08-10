@@ -20,7 +20,8 @@ public enum CommandEnum {
     CMD_LOGIN((byte)0x01, "接入命令"),
     CMD_HEARTBEAT((byte)0x02, "心跳命令"),
     CMD_CONNECTION_POOL((byte)0x03, "建立连接池"),
-    CMD_PROXY_START((byte)0x04, "启动代理服务");
+    CMD_PROXY_START((byte)0x04, "启动代理服务"),
+    CMD_CONNECTION_POOL_EXPANSION((byte)0x05, "连接池扩容命令");
 
 
     private byte cmd;//通信协议命令字

@@ -61,10 +61,9 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("代理服务连接成功:"+ctx.channel().id());
-        //新的连接建立后先进行配对
+        //新的连接建立后进行配对
         ServerChannelGroup.forkChannel(ctx.channel());
-        //发送启动代理客户端
+        //发送启动代理客户端命令
         ByteBuf byteBuf = Unpooled.buffer();
         byteBuf.writeByte(FrameConstant.pv);
         long serial = System.currentTimeMillis();
@@ -92,7 +91,6 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("代理服务断开："+ctx.channel().id());
         ServerChannelGroup.removeProxyChannel(ctx.channel());
         Channel internalChannel = ServerChannelGroup.getInternalByProxy(ctx.channel().id());
         //如果是proxy连接断开，将之前配对的internal连接移除配对，并在2秒后回归空闲连接池，相当于有2秒的time_wait状态
@@ -112,12 +110,12 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         if(!channel.isActive()){
-            logger.info("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            logger.debug("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
             cause.printStackTrace();
             ctx.close();
         }else{
             ctx.fireExceptionCaught(cause);
-            logger.info("###############",cause);
+            logger.debug("###############",cause);
         }
     }
 }

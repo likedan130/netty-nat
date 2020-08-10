@@ -1,6 +1,12 @@
 package server.group;
 
+import core.cache.PropertiesCache;
+import core.constant.FrameConstant;
+import core.constant.NumberConstant;
+import core.enums.CommandEnum;
+import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
@@ -106,14 +112,33 @@ public class ServerChannelGroup {
      * @throws Exception
      */
     public synchronized static void forkChannel(Channel channel) throws Exception{
-        if (!idleInternalList.isEmpty()) {
+        //读取配置文件
+        PropertiesCache cache = PropertiesCache.getInstance();
+        //判断连接池是否为空，剩余数量小于配置参数就扩容
+        if (!idleInternalList.isEmpty() && idleInternalList.size() > cache.getInt("min.connection.pool")) {
             Channel idleChannel = idleInternalList.get(0);
             idleInternalList.remove(idleChannel);
             internalGroup.add(idleChannel);
             channelPair.put(idleChannel.id(), channel.id());
             proxyGroup.add(channel);
         } else {
-            log.error("连接用尽，代理服务"+channel.id()+"配对失败!!!");
+            //发送连接池扩容命令
+            ByteBuf byteBuf = Unpooled.buffer();
+            byteBuf.writeByte(FrameConstant.pv);
+            long serial = System.currentTimeMillis();
+            byteBuf.writeLong(serial);
+            byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL_EXPANSION.getCmd());
+            byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
+            //扩容连接池数量
+            byteBuf.writeByte(cache.getInt("connection_pool_expansion"));
+            //计算校验和
+            int vc = NumberConstant.ZERO;
+            for (byte byteVal : BufUtil.getArray(byteBuf)) {
+                vc = vc + (byteVal & 0xFF);
+            }
+            byteBuf.writeByte(vc);
+            Channel sysClient = sysChannel.get("Sys");
+            sysClient.writeAndFlush(byteBuf);
         }
     }
 

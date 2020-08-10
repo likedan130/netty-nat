@@ -40,7 +40,7 @@ public class ProxyServer extends Server {
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(cache.getInt("proxy.server.port")).sync();
-        System.out.println("ProxyServer start listen on port " + cache.getInt("proxy.server.port") + "......");
+        log.debug("ProxyServer start listen on port " + cache.getInt("proxy.server.port") + "......");
         f.channel().closeFuture().sync();
     }
 

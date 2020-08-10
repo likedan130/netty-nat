@@ -98,7 +98,6 @@ public class PropertiesLoader extends AbstractLoader{
 			}
 		}catch(Exception e){
 			e.printStackTrace();
-			System.out.println(e.getStackTrace());
 		}
 		return fileList;
 	}

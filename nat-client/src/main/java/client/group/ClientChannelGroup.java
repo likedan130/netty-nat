@@ -1,5 +1,6 @@
 package client.group;
 
+import client.InternalClient;
 import core.cache.PropertiesCache;
 import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
@@ -54,6 +55,11 @@ public class ClientChannelGroup {
      */
     public static int connectProxy = NumberConstant.ZERO;
 
+    /**
+     *按顺序存储proxyClient启动信息
+     *index[0] PropertiesCache配置文件参数
+     * index[1] Bootstrap — 启动类
+     */
     public static List<Object> proxyClient = new ArrayList<>();
 
     public static List<Channel> getIdleInternalList(){
@@ -98,24 +104,43 @@ public class ClientChannelGroup {
 
 
     /**
+     * 连接池扩容
+     */
+    public static void connectionPoolExpansion(ByteBuf msg) throws Exception{
+        int connectionNum = msg.getByte(NumberConstant.TWELVE) & 0xFF;
+        //启动内部客户端连接池
+        InternalClient internalClient = new InternalClient();
+        internalClient.init();
+        internalClient.start(connectionNum);
+    }
+
+    /**
+     * 代理客户端未连接
      * 根据传入的内部channel，fork出一条proxyChannel与之配对
      */
     public static synchronized Channel proxyNotExist(Channel channel) throws Exception {
 
-        //获取代理连接
+        //获取代理连接，获取配置文件参数
         PropertiesCache cache = (PropertiesCache)proxyClient.get(0);
+        //获取启动数据
         Bootstrap client = (Bootstrap)proxyClient.get(1);
+        //进行连接
         ChannelFuture channelFuture = client.connect(cache.get("proxy.client.host"),
                 cache.getInt("proxy.client.port")).sync();
         Channel channel1 = channelFuture.channel();
+        //如果内部客户端组包含则删除
         if(idleInternalList.contains(channel)) {
             idleInternalList.remove(channel);
         }
+        //如果系统内部连接池不包含则添加
         if (!internalGroup.contains(channel)) {
             internalGroup.add(channel);
         }
+        //删除原配对关系
         channelPair.remove(channel.id());
+        //添加新配对关系
         channelPair.put(channel.id(),channel1.id());
+        //如果系统代理连接池不包含则添加
         if(!proxyGroup.contains(channel1)){
             proxyGroup.add(channel1);
         }
