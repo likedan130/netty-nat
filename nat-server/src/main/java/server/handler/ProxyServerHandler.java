@@ -29,28 +29,21 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
             //已经存在配对，直接进行消息转发
             Channel internalChannel = ServerChannelGroup.getInternalByProxy(proxyChannel.id());
-            byte[] message = new byte[msg.readableBytes()];
-            msg.readBytes(message);
-            ByteBuf byteBuf = Unpooled.buffer();
-            byteBuf.writeBytes(message);
-            internalChannel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
-                if (!future.isSuccess()) {
-                    logger.error("send data to proxyServer exception occur: ", future.cause());
-                }
-            });
+            if(internalChannel != null && internalChannel.isActive()) {
+                byte[] message = new byte[msg.readableBytes()];
+                msg.readBytes(message);
+                ByteBuf byteBuf = Unpooled.buffer();
+                byteBuf.writeBytes(message);
+                internalChannel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
+                    if (!future.isSuccess()) {
+                        logger.error("send data to proxyServer exception occur: ", future.cause());
+                    }
+                });
+            }else {
+                logger.error("ProxyServerHandler channel is closed");
+            }
         } else {
-            //未配对的，先进行配对后，再消息转发
-            ServerChannelGroup.forkChannel(ctx.channel());
-            Channel internalChannel = ServerChannelGroup.getInternalByProxy(proxyChannel.id());
-            byte[] message = new byte[msg.readableBytes()];
-            msg.readBytes(message);
-            ByteBuf byteBuf = Unpooled.buffer();
-            byteBuf.writeBytes(message);
-            internalChannel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
-                if (!future.isSuccess()) {
-                    logger.error("send data to proxyServer exception occur: ", future.cause());
-                }
-            });
+            logger.error("ProxyServerHandler No matching association");
         }
     }
 
@@ -62,22 +55,21 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         //新的连接建立后进行配对
-        ServerChannelGroup.forkChannel(ctx.channel());
+        Channel internalChannel = ServerChannelGroup.forkChannel(ctx.channel());
         //发送启动代理客户端命令
         ByteBuf byteBuf = Unpooled.buffer();
         byteBuf.writeByte(FrameConstant.pv);
         long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_PROXY_START.getCmd());
-        byteBuf.writeShort(NumberConstant.ONE);
+        byteBuf.writeShort(NumberConstant.ONE+ NumberConstant.ONE);
         //计算校验和
         int vc = NumberConstant.ZERO;
         for (byte byteVal : BufUtil.getArray(byteBuf)) {
             vc = vc + (byteVal & 0xFF);
         }
         byteBuf.writeByte(vc);
-        Channel channel = ServerChannelGroup.getSysChannel().get("Sys");
-        channel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
+        internalChannel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
             if (!future.isSuccess()) {
                 logger.error("proxyServer send data to sysClient exception occur: ", future.cause());
             }

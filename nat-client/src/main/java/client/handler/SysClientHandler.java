@@ -35,14 +35,11 @@ public class SysClientHandler extends SimpleChannelInboundHandler<ByteBuf>{
             case (byte)0x03:
                 new ConnectionPoolProcessor().process(ctx, msg);
                 break;
-            case (byte)0x04:
-                log.debug("启动代理服务");
-                ClientChannelGroup.connectProxy = ++ClientChannelGroup.connectProxy;
-                ClientChannelGroup.forkProxyChannel();
-                ClientChannelGroup.connectProxy = --ClientChannelGroup.connectProxy;
-                break;
             case (byte)0x05:
                 ClientChannelGroup.connectionPoolExpansion(msg);
+                break;
+            case (byte)0x06:
+                ClientChannelGroup.removeInternalChannel(msg);
                 break;
         }
     }

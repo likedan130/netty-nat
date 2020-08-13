@@ -28,21 +28,11 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
                         logger.error("InternalServer send data to proxyServer exception occur: ", future.cause());
                     }
                 });
+            }else {
+                logger.error("InternalServerHandler channel is closed");
             }
         }else {
-            Channel proxyChannel = ServerChannelGroup.getProxyByInternal(channelId);
-            //不为空且处于已连接活跃状态
-            if (proxyChannel != null && proxyChannel.isActive()) {
-                byte[] message = new byte[msg.readableBytes()];
-                msg.readBytes(message);
-                ByteBuf byteBuf = Unpooled.buffer();
-                byteBuf.writeBytes(message);
-                proxyChannel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
-                    if (!future.isSuccess()) {
-                        logger.error("InternalServer send data to proxyServer exception occur: ", future.cause());
-                    }
-                });
-            }
+            logger.error("InternalServerHandler No matching association");
         }
     }
 

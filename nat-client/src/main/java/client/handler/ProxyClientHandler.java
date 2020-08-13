@@ -1,6 +1,8 @@
 package client.handler;
 
+import client.Client;
 import client.group.ClientChannelGroup;
+import core.constant.NumberConstant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -9,6 +11,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static final Logger logger = LoggerFactory.getLogger(ProxyClientHandler.class);
@@ -39,7 +43,13 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        super.channelInactive(ctx);
+        ClientChannelGroup.removeProxyChannel(ctx.channel());
+        Channel internalChannel = ClientChannelGroup.getInternalByProxy(ctx.channel().id());
+        //如果是proxy连接断开，将之前配对的internal连接移除配对，并在2秒后回归空闲连接池，相当于有2秒的time_wait状态
+        ClientChannelGroup.removeChannelPair(internalChannel.id(), ctx.channel().id());
+        Client.scheduledExecutor.schedule(
+                () -> ClientChannelGroup.releaseInternalChannel(internalChannel),
+                NumberConstant.TWO, TimeUnit.SECONDS);
     }
 
     /**

@@ -41,7 +41,6 @@ public class ServerChannelGroup {
      */
     private static ChannelGroup internalGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-
     /**
      * 内部服务的channel组
      */
@@ -76,7 +75,7 @@ public class ServerChannelGroup {
         proxyGroup.add(channel);
     }
 
-    public static void removeProxyChannel(Channel channel) {
+    public static void removeProxyChannel(Channel channel) throws Exception{
         proxyGroup.remove(channel);
     }
 
@@ -84,11 +83,11 @@ public class ServerChannelGroup {
         internalGroup.add(channel);
     }
 
-    public static void removeInternalChannel(Channel channel) {
+    public static void removeInternalChannel(Channel channel) throws Exception{
         internalGroup.remove(channel);
     }
 
-    public static void removeIdleInternalChannel(Channel channel) {
+    public static void removeIdleInternalChannel(Channel channel) throws Exception{
         idleInternalList.remove(channel);
     }
 
@@ -101,7 +100,7 @@ public class ServerChannelGroup {
      * 释放占用的连接池连接
      * @param channel
      */
-    public static void releaseInternalChannel(Channel channel) {
+    public static void releaseInternalChannel(Channel channel){
         internalGroup.remove(channel);
         idleInternalList.add(channel);
     }
@@ -111,17 +110,11 @@ public class ServerChannelGroup {
      * @param channel
      * @throws Exception
      */
-    public synchronized static void forkChannel(Channel channel) throws Exception{
-        //读取配置文件
+    public synchronized static Channel forkChannel(Channel channel) throws Exception{
+        //获取配置文件参数
         PropertiesCache cache = PropertiesCache.getInstance();
-        //判断连接池是否为空，剩余数量小于配置参数就扩容
-        if (!idleInternalList.isEmpty() && idleInternalList.size() > cache.getInt("min.connection.pool")) {
-            Channel idleChannel = idleInternalList.get(0);
-            idleInternalList.remove(idleChannel);
-            internalGroup.add(idleChannel);
-            channelPair.put(idleChannel.id(), channel.id());
-            proxyGroup.add(channel);
-        } else {
+      //判断连接池剩余连接
+     if(idleInternalList.size() < cache.getInt("min.connection.pool")){
             //发送连接池扩容命令
             ByteBuf byteBuf = Unpooled.buffer();
             byteBuf.writeByte(FrameConstant.pv);
@@ -130,7 +123,7 @@ public class ServerChannelGroup {
             byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL_EXPANSION.getCmd());
             byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
             //扩容连接池数量
-            byteBuf.writeByte(cache.getInt("connection_pool_expansion"));
+            byteBuf.writeByte(NumberConstant.FIFTY);
             //计算校验和
             int vc = NumberConstant.ZERO;
             for (byte byteVal : BufUtil.getArray(byteBuf)) {
@@ -140,6 +133,33 @@ public class ServerChannelGroup {
             Channel sysClient = sysChannel.get("Sys");
             sysClient.writeAndFlush(byteBuf);
         }
+        if(idleInternalList.size() > cache.getInt("max.connection.pool")){
+            //移除连接数量
+            int num = idleInternalList.size() - cache.getInt("max.connection.pool");
+            //发送移除部分连接命令
+            ByteBuf byteBuf = Unpooled.buffer();
+            byteBuf.writeByte(FrameConstant.pv);
+            long serial = System.currentTimeMillis();
+            byteBuf.writeLong(serial);
+            byteBuf.writeByte(CommandEnum.CMD_REMOVE_THE_CONNECTION.getCmd());
+            byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
+            //连接池移除数量
+            byteBuf.writeByte(num);
+            //计算校验和
+            int vc = NumberConstant.ZERO;
+            for (byte byteVal : BufUtil.getArray(byteBuf)) {
+                vc = vc + (byteVal & 0xFF);
+            }
+            byteBuf.writeByte(vc);
+            Channel sysClient = sysChannel.get("Sys");
+            sysClient.writeAndFlush(byteBuf);
+        }
+        Channel idleChannel = idleInternalList.get(0);
+        idleInternalList.remove(idleChannel);
+        internalGroup.add(idleChannel);
+        channelPair.put(idleChannel.id(), channel.id());
+        proxyGroup.add(channel);
+        return idleChannel;
     }
 
     /**
@@ -179,7 +199,7 @@ public class ServerChannelGroup {
         channelPair.put(internalChannelId, proxyChannelId);
     }
 
-    public static void removeChannelPair(ChannelId internalChannelId, ChannelId proxyChannelId) {
+    public static void removeChannelPair(ChannelId internalChannelId, ChannelId proxyChannelId) throws Exception{
         channelPair.remove(internalChannelId, proxyChannelId);
     }
 
@@ -219,7 +239,7 @@ public class ServerChannelGroup {
      * @param channelId
      * @return
      */
-    public static Channel getProxyByInternal(ChannelId channelId){
+    public static Channel getProxyByInternal(ChannelId channelId) throws Exception{
         ChannelId proxyChannelId = channelPair.get(channelId);
         return proxyGroup.find(proxyChannelId);
     }

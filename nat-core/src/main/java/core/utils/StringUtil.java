@@ -4,6 +4,8 @@
 
 package core.utils;
 
+import io.netty.channel.Channel;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
@@ -152,5 +154,4 @@ public final class StringUtil {
             sb.append('\t');
         }
     }
-
 }

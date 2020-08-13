@@ -85,7 +85,8 @@ public class LoginProcessor implements Processor {
                 ctx.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        if (future.isSuccess()) {
+                        //重连判断连接池是否为空
+                        if (future.isSuccess() && ServerChannelGroup.getIdleInternalList().isEmpty()) {
                             //立刻发送连接池的建立命令给客户端
                             ByteBuf byteBuf = Unpooled.buffer();
                             byteBuf.writeByte(FrameConstant.pv);
@@ -93,7 +94,7 @@ public class LoginProcessor implements Processor {
                             byteBuf.writeLong(serial);
                             byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
                             byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
-                            byteBuf.writeByte(30);//连接池数量
+                            byteBuf.writeByte(110);//连接池数量
                             //计算校验和
                             int vc = NumberConstant.ZERO;
                             for (byte byteVal : BufUtil.getArray(byteBuf)) {

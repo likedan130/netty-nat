@@ -1,7 +1,6 @@
 package client.handler;
 
 import client.group.ClientChannelGroup;
-import core.constant.NumberConstant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -23,15 +22,15 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        ClientChannelGroup.removeIdleInternalChannel(ctx.channel());
+        ClientChannelGroup.removeInternalChannel(ctx.channel());
+        Channel proxyChannel = ClientChannelGroup.getProxyByInternal(ctx.channel().id());
+        ClientChannelGroup.removeChannelPair(ctx.channel().id(), proxyChannel.id());
+        proxyChannel.close();
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        while (true){
-            if(ClientChannelGroup.connectProxy == NumberConstant.ZERO){
-                break;
-            }
-        }
         byte[] message = new byte[msg.readableBytes()];
         msg.readBytes(message);
         ChannelId channelId = ctx.channel().id();
@@ -48,22 +47,13 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
                     }
                 });
             }else {
-                sendMessage(message,ctx.channel());
+                logger.error("InternalClientHandler channel is closed");
             }
         }else {
-            sendMessage(message,ctx.channel());
+            ClientChannelGroup.forkProxyChannel(channelId);
         }
     }
-    private void sendMessage(byte[] message,Channel channel) throws Exception{
-        Channel proxyChannel = ClientChannelGroup.proxyNotExist(channel);
-        ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeBytes(message);
-        proxyChannel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
-            if (!future.isSuccess()) {
-                logger.error("InternalClient send data to proxyClient exception occur: ", future.cause());
-            }
-        });
-    }
+
 
     /**
      * 通道异常触发

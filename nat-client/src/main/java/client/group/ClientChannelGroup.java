@@ -90,11 +90,11 @@ public class ClientChannelGroup {
         internalGroup.add(channel);
     }
 
-    public static void removeInternalChannel(Channel channel) {
+    public static void removeInternalChannel(Channel channel) throws Exception{
         internalGroup.remove(channel);
     }
 
-    public static void removeIdleInternalChannel(Channel channel) {
+    public static void removeIdleInternalChannel(Channel channel) throws Exception{
         idleInternalGroup.remove(channel);
     }
 
@@ -102,6 +102,16 @@ public class ClientChannelGroup {
         idleInternalList.add(channel);
     }
 
+    /**
+     * 移除部分连接
+     */
+    public static void removeInternalChannel(ByteBuf msg) throws Exception{
+        //移除数量
+//        int connectionNum = msg.getByte(NumberConstant.TWELVE) & 0xFF;
+//        for (int i = 0; i < connectionNum; i++) {
+//            idleInternalList.get(i).close();
+//        }
+    }
 
     /**
      * 连接池扩容
@@ -115,61 +125,41 @@ public class ClientChannelGroup {
     }
 
     /**
-     * 代理客户端未连接
      * 根据传入的内部channel，fork出一条proxyChannel与之配对
      */
-    public static synchronized Channel proxyNotExist(Channel channel) throws Exception {
-
-        //获取代理连接，获取配置文件参数
-        PropertiesCache cache = (PropertiesCache)proxyClient.get(0);
-        //获取启动数据
-        Bootstrap client = (Bootstrap)proxyClient.get(1);
-        //进行连接
-        ChannelFuture channelFuture = client.connect(cache.get("proxy.client.host"),
-                cache.getInt("proxy.client.port")).sync();
-        Channel channel1 = channelFuture.channel();
-        //如果内部客户端组包含则删除
-        if(idleInternalList.contains(channel)) {
-            idleInternalList.remove(channel);
-        }
-        //如果系统内部连接池不包含则添加
-        if (!internalGroup.contains(channel)) {
-            internalGroup.add(channel);
-        }
-        //删除原配对关系
-        channelPair.remove(channel.id());
-        //添加新配对关系
-        channelPair.put(channel.id(),channel1.id());
-        //如果系统代理连接池不包含则添加
-        if(!proxyGroup.contains(channel1)){
-            proxyGroup.add(channel1);
-        }
-        return channel1;
-    }
-
-    /**
-     * 根据传入的内部channel，fork出一条proxyChannel与之配对
-     */
-    public static synchronized void forkProxyChannel() throws Exception {
+    public static synchronized void forkProxyChannel(ChannelId channelId) throws Exception {
         //获取代理连接
-        PropertiesCache cache = (PropertiesCache)proxyClient.get(0);
-        Bootstrap client = (Bootstrap)proxyClient.get(1);
-        ChannelFuture channelFuture = client.connect(cache.get("proxy.client.host"),
-                cache.getInt("proxy.client.port")).sync();
-        Channel channel = channelFuture.channel();
         if (!idleInternalList.isEmpty()) {
-            Channel idleChannel = idleInternalList.get(0);
-            idleInternalList.remove(idleChannel);
-            internalGroup.add(idleChannel);
-            channelPair.put(idleChannel.id(), channel.id());
+            List<Channel> idleChannel = idleInternalList.stream().filter(e -> Objects.equals(e.id().toString(),channelId.toString())).collect(Collectors.toList());
+            idleInternalList.remove(idleChannel.get(0));
+            internalGroup.add(idleChannel.get(0));
+            PropertiesCache cache = (PropertiesCache)proxyClient.get(0);
+            Bootstrap client = (Bootstrap)proxyClient.get(1);
+            ChannelFuture channelFuture = client.connect(cache.get("proxy.client.host"),
+                    cache.getInt("proxy.client.port")).sync();
+            Channel channel = channelFuture.channel();
+            channelPair.put(idleChannel.get(0).id(), channel.id());
             proxyGroup.add(channel);
         } else {
-            log.error("连接用尽，代理服务" + channel.id() + "配对失败!!!");
+            log.error("连接用尽，代理服务" + channelId + "配对失败!!!");
         }
     }
 
     public static void addChannelPair(Channel internalChannel, Channel proxyChannel) {
         channelPair.put(internalChannel.id(), proxyChannel.id());
+    }
+
+    public static void removeChannelPair(ChannelId internalChannelId, ChannelId proxyChannelId) throws Exception{
+        channelPair.remove(internalChannelId, proxyChannelId);
+    }
+
+    /**
+     * 释放占用的连接池连接
+     * @param channel
+     */
+    public static void releaseInternalChannel(Channel channel) {
+        internalGroup.remove(channel);
+        idleInternalList.add(channel);
     }
 
     /**
@@ -228,7 +218,7 @@ public class ClientChannelGroup {
      * @param channelId
      * @return
      */
-    public static Channel getProxyByInternal(ChannelId channelId){
+    public static Channel getProxyByInternal(ChannelId channelId) throws Exception{
         ChannelId proxyChannelId = channelPair.get(channelId);
         return proxyGroup.find(proxyChannelId);
     }
