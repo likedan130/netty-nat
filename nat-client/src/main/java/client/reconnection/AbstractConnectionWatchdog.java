@@ -1,6 +1,6 @@
 package client.reconnection;
 
-import core.constant.NumberConstant;
+import core.constant.FrameConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -61,7 +61,7 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        attempts = NumberConstant.ZERO;
+        attempts = 0;
         ctx.fireChannelActive();
     }
 
@@ -71,10 +71,10 @@ public abstract class AbstractConnectionWatchdog extends ChannelInboundHandlerAd
         log.debug("链接关闭");
         if(reconnect){
             log.debug("链接关闭，将进行重连");
-            if (attempts < NumberConstant.TEN) {
+            if (attempts < FrameConstant.TCP_CONNECTION_RETRY_NUM) {
                 attempts++;
                 //2的倍数增涨重连间隔时长
-                int timeout = NumberConstant.TWO << attempts;
+                int timeout = FrameConstant.TCP_RETRY_INTERVAL_ADD << attempts;
                 timer.newTimeout(this, timeout, TimeUnit.SECONDS);
             }
         }

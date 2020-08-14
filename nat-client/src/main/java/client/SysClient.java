@@ -1,13 +1,15 @@
 package client;
 
-import client.reconnection.AbstractConnectionWatchdog;
+import client.handler.SysClientHandler;
 import client.reconnection.ConnectionListener;
 import core.cache.PropertiesCache;
-import core.constant.NumberConstant;
+import core.constant.FrameConstant;
 import core.frame.loader.PropertiesLoader;
-import client.handler.*;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -17,8 +19,6 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
-
-import java.io.File;
 
 /**
  * @Author wneck130@gmail.com
@@ -45,23 +45,8 @@ public class SysClient extends Client {
     public void start() throws Exception {
 
         EventLoopGroup group = new NioEventLoopGroup();
-
         client = new Bootstrap();
         client.group(group).channel(NioSocketChannel.class).handler(new LoggingHandler(LogLevel.INFO));
-
-        final AbstractConnectionWatchdog watchdog = new AbstractConnectionWatchdog(client, timer, port, host, true) {
-
-            @Override
-            public ChannelHandler[] handlers() {
-                return new ChannelHandler[]{
-                        this,
-                        new LengthFieldBasedFrameDecoder(NumberConstant.SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_AND_THIRTY_FIVE, NumberConstant.TEN, NumberConstant.TWO),
-                        new IdleStateHandler(NumberConstant.ZERO, NumberConstant.ZERO, NumberConstant.TEN),
-                        //加入自定义的handler
-                        new SysClientHandler()
-                };
-            }
-        };
         ChannelFuture future;
         //进行连接
         try {
@@ -71,7 +56,13 @@ public class SysClient extends Client {
                     //初始化channel
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
-                        ch.pipeline().addLast(watchdog.handlers());
+                        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(FrameConstant.FRAME_MAX_BYTES,
+                                        FrameConstant.FRAME_LEN_INDEX, FrameConstant.FRAME_LEN_LEN),
+                                new IdleStateHandler(FrameConstant.PIPELINE_READE_TIMEOUT_CONTROLL,
+                                        FrameConstant.PIPELINE_WRITE_TIMEOUT,
+                                        FrameConstant.PIPELINE_READ_WRITE_TIMEOUT),
+                                //加入自定义的handler
+                                new SysClientHandler());
                     }
                 });
                 future = client.connect(host, port);
@@ -81,8 +72,8 @@ public class SysClient extends Client {
             // 以下代码在synchronized同步块外面是安全的
             future.sync();
         } catch (Throwable t) {
-            log.error("connects to  fails", t);
-            throw new Exception("connects to  fails", t);
+            log.error("connects to {} fails", host+":"+port, t);
+            throw new Exception("connects to Server fails", t);
         }
     }
 

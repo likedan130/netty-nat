@@ -2,7 +2,6 @@ package server.group;
 
 import core.cache.PropertiesCache;
 import core.constant.FrameConstant;
-import core.constant.NumberConstant;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
@@ -14,12 +13,18 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class ServerChannelGroup {
    private static Logger log = LoggerFactory.getLogger(ServerChannelGroup.class);
+
+   private static PropertiesCache cache = PropertiesCache.getInstance();
     /**
      * 系统连接的缓存
      */
@@ -121,11 +126,11 @@ public class ServerChannelGroup {
             long serial = System.currentTimeMillis();
             byteBuf.writeLong(serial);
             byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL_EXPANSION.getCmd());
-            byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
+            byteBuf.writeShort(FrameConstant.CHANNEL_POOL_NUM_LEN + FrameConstant.VC_CODE_LEN);
             //扩容连接池数量
-            byteBuf.writeByte(NumberConstant.FIFTY);
+            byteBuf.writeByte(cache.getInt("channel.pool.expand.num"));
             //计算校验和
-            int vc = NumberConstant.ZERO;
+            int vc = 0;
             for (byte byteVal : BufUtil.getArray(byteBuf)) {
                 vc = vc + (byteVal & 0xFF);
             }
@@ -142,11 +147,11 @@ public class ServerChannelGroup {
             long serial = System.currentTimeMillis();
             byteBuf.writeLong(serial);
             byteBuf.writeByte(CommandEnum.CMD_REMOVE_THE_CONNECTION.getCmd());
-            byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
+            byteBuf.writeShort(FrameConstant.CHANNEL_POOL_NUM_LEN + FrameConstant.VC_CODE_LEN);
             //连接池移除数量
             byteBuf.writeByte(num);
             //计算校验和
-            int vc = NumberConstant.ZERO;
+            int vc = 0;
             for (byte byteVal : BufUtil.getArray(byteBuf)) {
                 vc = vc + (byteVal & 0xFF);
             }

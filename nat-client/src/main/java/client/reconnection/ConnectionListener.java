@@ -26,9 +26,7 @@ public class ConnectionListener implements ChannelFutureListener {
     public void operationComplete(ChannelFuture channelFuture) throws Exception {
         if (!channelFuture.isSuccess()) {
             final EventLoop loop = channelFuture.channel().eventLoop();
-            loop.schedule(new Runnable() {
-                @Override
-                public void run() {
+            loop.schedule(() -> {
                     log.warn("服务端链接不上，开始重连操作...");
                     try{
                         client.init();
@@ -36,10 +34,9 @@ public class ConnectionListener implements ChannelFutureListener {
                     }catch (Exception e){
                         e.printStackTrace();
                     }
-                }
             }, 3L, TimeUnit.SECONDS);
         } else {
-            log.debug("服务端链接成功...");
+            log.debug("连接服务端成功...");
         }
     }
 }

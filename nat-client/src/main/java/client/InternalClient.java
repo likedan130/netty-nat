@@ -1,8 +1,7 @@
 package client;
 
+import client.handler.InternalClientHandler;
 import core.cache.PropertiesCache;
-import client.handler.*;
-import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -42,7 +41,7 @@ public class InternalClient extends Client {
     }
     private void startClient(int num,PropertiesCache cache,Bootstrap client) throws Exception{
         //连接服务器
-        if(num > NumberConstant.ZERO) {
+        if(num > 0) {
             client.connect(cache.get("internal.host"),
                     cache.getInt("internal.server.port")).sync().addListener(new GenericFutureListener<Future<? super Void>>() {
                 @Override

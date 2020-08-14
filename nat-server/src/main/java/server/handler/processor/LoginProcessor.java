@@ -1,7 +1,6 @@
 package server.handler.processor;
 
 import core.constant.FrameConstant;
-import core.constant.NumberConstant;
 import core.enums.CommandEnum;
 import core.enums.StringEnum;
 import core.utils.BufUtil;
@@ -33,9 +32,9 @@ public class LoginProcessor implements Processor {
      */
     @Override
     public void process(ChannelHandlerContext ctx, ByteBuf msg) throws Exception{
-        int passwordLen = msg.getByte(NumberConstant.TWELVE) & 0xFF;
+        int passwordLen = msg.getByte(FrameConstant.FRAME_PASSWORD_INDEX) & 0xFF;
         byte[] passwordBytes = new byte[passwordLen];
-        msg.getBytes(NumberConstant.THIRTEEN, passwordBytes);
+        msg.getBytes(FrameConstant.FRAME_PASSWORD_LEN_INDEX, passwordBytes);
         String password = new String(passwordBytes, "UTF-8");
         if (Objects.equals(password, StringEnum.LOGIN_PASSWORD.getValue())) {
             //判断代理服务是否活跃
@@ -73,10 +72,10 @@ public class LoginProcessor implements Processor {
                 long serial = System.currentTimeMillis();
                 byteBuf.writeLong(serial);
                 byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
-                byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
+                byteBuf.writeShort(FrameConstant.FRAME_RESULT_LEN + FrameConstant.VC_CODE_LEN);
                 byteBuf.writeByte(FrameConstant.RESULT_SUCCESS);
                 //计算校验和
-                int vc = NumberConstant.ZERO;
+                int vc = 0;
                 for (byte byteVal : BufUtil.getArray(byteBuf)) {
                     vc = vc + (byteVal & 0xFF);
                 }
@@ -93,10 +92,10 @@ public class LoginProcessor implements Processor {
                             long serial = System.currentTimeMillis();
                             byteBuf.writeLong(serial);
                             byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
-                            byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
-                            byteBuf.writeByte(110);//连接池数量
+                            byteBuf.writeShort(FrameConstant.CHANNEL_POOL_NUM_LEN + FrameConstant.VC_CODE_LEN);
+                            byteBuf.writeByte(FrameConstant.CHANNEL_POOL_INIT_NUM);//连接池数量
                             //计算校验和
-                            int vc = NumberConstant.ZERO;
+                            int vc = 0;
                             for (byte byteVal : BufUtil.getArray(byteBuf)) {
                                 vc = vc + (byteVal & 0xFF);
                             }

@@ -2,7 +2,7 @@ package client.handler;
 
 import client.Client;
 import client.group.ClientChannelGroup;
-import core.constant.NumberConstant;
+import core.constant.FrameConstant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -49,7 +49,7 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
         ClientChannelGroup.removeChannelPair(internalChannel.id(), ctx.channel().id());
         Client.scheduledExecutor.schedule(
                 () -> ClientChannelGroup.releaseInternalChannel(internalChannel),
-                NumberConstant.TWO, TimeUnit.SECONDS);
+                FrameConstant.CHANNEL_RELEASE_DELAY, TimeUnit.SECONDS);
     }
 
     /**

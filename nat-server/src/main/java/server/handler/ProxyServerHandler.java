@@ -1,12 +1,14 @@
 package server.handler;
 
 import core.constant.FrameConstant;
-import core.constant.NumberConstant;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.Server;
@@ -69,9 +71,9 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
             long serial = System.currentTimeMillis();
             byteBuf.writeLong(serial);
             byteBuf.writeByte(CommandEnum.CMD_PROXY_START.getCmd());
-            byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
+            byteBuf.writeShort(FrameConstant.VC_CODE_LEN);
             //计算校验和
-            int vc = NumberConstant.ZERO;
+            int vc = 0;
             for (byte byteVal : BufUtil.getArray(byteBuf)) {
                 vc = vc + (byteVal & 0xFF);
             }
@@ -97,7 +99,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         ServerChannelGroup.removeChannelPair(internalChannel.id(), ctx.channel().id());
         Server.scheduledExecutor.schedule(
                 () -> ServerChannelGroup.releaseInternalChannel(internalChannel),
-                NumberConstant.TWO, TimeUnit.SECONDS);
+                FrameConstant.CHANNEL_RELEASE_DELAY, TimeUnit.SECONDS);
     }
 
     /**

@@ -2,7 +2,6 @@ package client;
 
 import client.handler.ProxyClientHandler;
 import core.cache.PropertiesCache;
-import core.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -54,7 +53,7 @@ public class ProxyClient extends Client {
     public Channel getChannel(int timeout) throws Exception{
         long start = System.currentTimeMillis();
         while (true) {
-            Thread.sleep(NumberConstant.ZERO);
+            Thread.sleep(0);
             if (System.currentTimeMillis() - start >= timeout) {
                 throw new Exception("连接被代理服务超时!!!");
             }

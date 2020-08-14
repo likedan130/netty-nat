@@ -1,7 +1,6 @@
 package server.handler.processor;
 
 import core.constant.FrameConstant;
-import core.constant.NumberConstant;
 import core.enums.CommandEnum;
 import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
@@ -11,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.Server;
 import server.handler.SysServerhandler;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -24,9 +24,9 @@ public class HeartbeatProcessor implements Processor {
         long serial = System.currentTimeMillis();
         byteBuf.writeLong(serial);
         byteBuf.writeByte(CommandEnum.CMD_HEARTBEAT.getCmd());
-        byteBuf.writeShort(NumberConstant.ONE);
+        byteBuf.writeShort(FrameConstant.VC_CODE_LEN);
         //计算校验和
-        int vc = NumberConstant.ZERO;
+        int vc = 0;
         for (byte byteVal : BufUtil.getArray(byteBuf)) {
             vc = vc + (byteVal & 0xFF);
         }
@@ -52,7 +52,7 @@ public class HeartbeatProcessor implements Processor {
                 long endTime = System.currentTimeMillis();
                 int interval = (int) (endTime - time) / 1000;
                 //如果间隔时间大于15秒则关闭channel
-                if (interval > NumberConstant.HEARTBEAT_TIMEOUT_FIFTEEN) {
+                if (interval > FrameConstant.HEARTBEAT_TIMEOUT) {
                     log.debug("关闭通道");
                     //关闭链路
                     ctx.close();
@@ -60,6 +60,6 @@ public class HeartbeatProcessor implements Processor {
                     Server.scheduledExecutor.shutdown();
                 }
             }
-        },NumberConstant.FIFTEEN,NumberConstant.FIFTEEN, TimeUnit.SECONDS);
+        }, FrameConstant.HEARTBEAT_TIMEOUT, FrameConstant.HEARTBEAT_TIMEOUT, TimeUnit.SECONDS);
     }
 }

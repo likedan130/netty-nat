@@ -1,7 +1,7 @@
 package server;
 
 import core.cache.PropertiesCache;
-import core.constant.NumberConstant;
+import core.constant.FrameConstant;
 import core.frame.loader.PropertiesLoader;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -13,7 +13,6 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import server.handler.SysServerhandler;
 
-import java.io.File;
 import java.util.Objects;
 
 /**
@@ -28,20 +27,22 @@ public class SysServer extends Server {
     }
 
     public void start() throws Exception{
-        bossGroup = new NioEventLoopGroup(NumberConstant.ONE);
+        bossGroup = new NioEventLoopGroup(FrameConstant.BOSSGROUP_NUM);
         workerGroup = new NioEventLoopGroup();
         ServerBootstrap b = new ServerBootstrap();
         ChannelInitializer<SocketChannel> channelInit = new ChannelInitializer<SocketChannel>(){
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(NumberConstant.SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_AND_THIRTY_FIVE,NumberConstant.TEN,NumberConstant.TWO))
-                        .addLast(new IdleStateHandler(NumberConstant.ZERO, NumberConstant.ZERO, NumberConstant.TEN))
+                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(FrameConstant.FRAME_MAX_BYTES,
+                        FrameConstant.FRAME_LEN_INDEX, FrameConstant.FRAME_LEN_LEN))
+                        .addLast(new IdleStateHandler(FrameConstant.PIPELINE_READE_TIMEOUT,
+                                FrameConstant.PIPELINE_WRITE_TIMEOUT, FrameConstant.PIPELINE_READ_WRITE_TIMEOUT))
                         .addLast(new SysServerhandler());
             }
         };
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, NumberConstant.ONE_THOUSAND_AND_TWENTY_FOUR)
+                .option(ChannelOption.SO_BACKLOG, FrameConstant.TCP_SO_BACKLOG)
                 .childHandler(channelInit)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 

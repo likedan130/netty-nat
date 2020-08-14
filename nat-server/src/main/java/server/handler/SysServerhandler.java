@@ -1,6 +1,6 @@
 package server.handler;
 
-import core.constant.NumberConstant;
+import core.constant.FrameConstant;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,13 +13,9 @@ import server.handler.processor.LoginProcessor;
 
 public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static final Logger logger = LoggerFactory.getLogger(SysServerhandler.class);
-    /**
-     * 接收心跳时间
-     */
-    public static long time = 0L;
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        byte cmd = msg.getByte(NumberConstant.NINE);
+        byte cmd = msg.getByte(FrameConstant.FRAME_CMD_INDEX);
         switch (cmd) {
             //接入命令
             case 0x01:
@@ -29,10 +25,9 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
                 break;
             //心跳命令
             case 0x02:
-                time = System.currentTimeMillis();
                 new HeartbeatProcessor().process(ctx, msg);
                 break;
-            //建立连接池命令
+            //建立内部连接池命令
             case 0x03:
                 new ConnectionPoolProcessor().process(ctx, msg);
         }

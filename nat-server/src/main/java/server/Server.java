@@ -1,7 +1,6 @@
 package server;
 
 import core.cache.PropertiesCache;
-import core.constant.NumberConstant;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
@@ -19,11 +18,11 @@ public abstract class Server {
     protected EventLoopGroup workerGroup;
     protected ChannelFuture f;
     protected PropertiesCache cache;
-    private static int corePoolSize = Runtime.getRuntime().availableProcessors() * NumberConstant.TWO + NumberConstant.ONE;
-    private static int maximumPoolSize = Runtime.getRuntime().availableProcessors() * NumberConstant.THREE;
-    private static int keepAliveTime = NumberConstant.TEN;
+    private static int corePoolSize = Runtime.getRuntime().availableProcessors() * 2 + 1;
+    private static int maximumPoolSize = Runtime.getRuntime().availableProcessors() * 3;
+    private static int keepAliveTime = 10;
     public static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize,
-            maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(NumberConstant.ONE_HUNDRED),
+            maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(100),
             new ThreadPoolExecutor.DiscardOldestPolicy());
 
     public static ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();

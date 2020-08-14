@@ -2,7 +2,7 @@ package client.group;
 
 import client.InternalClient;
 import core.cache.PropertiesCache;
-import core.constant.NumberConstant;
+import core.constant.FrameConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -13,7 +13,11 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -49,11 +53,11 @@ public class ClientChannelGroup {
      * 内部服务的channel组
      */
     private static List<Channel> idleInternalList = new ArrayList<>();
-
-    /**
-     * 连接代理客户端缓存关联关系，同步
-     */
-    public static int connectProxy = NumberConstant.ZERO;
+//
+//    /**
+//     * 连接代理客户端缓存关联关系，同步
+//     */
+//    public static int connectProxy = 0;
 
     /**
      *按顺序存储proxyClient启动信息
@@ -117,7 +121,7 @@ public class ClientChannelGroup {
      * 连接池扩容
      */
     public static void connectionPoolExpansion(ByteBuf msg) throws Exception{
-        int connectionNum = msg.getByte(NumberConstant.TWELVE) & 0xFF;
+        int connectionNum = msg.getByte(FrameConstant.FRAME_DTAT_FIRST_BYTE_INDEX) & 0xFF;
         //启动内部客户端连接池
         InternalClient internalClient = new InternalClient();
         internalClient.init();

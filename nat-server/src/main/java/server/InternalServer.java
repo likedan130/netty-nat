@@ -1,8 +1,7 @@
 package server;
 
 import core.cache.PropertiesCache;
-import core.constant.NumberConstant;
-import core.enums.StringEnum;
+import core.constant.FrameConstant;
 import core.frame.loader.PropertiesLoader;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -10,9 +9,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import server.handler.*;
+import server.handler.InternalServerHandler;
 
 import java.util.Objects;
 public class InternalServer extends Server{
@@ -23,7 +20,7 @@ public class InternalServer extends Server{
     }
 
     public void start() throws Exception{
-        bossGroup = new NioEventLoopGroup(NumberConstant.ONE);
+        bossGroup = new NioEventLoopGroup(FrameConstant.BOSSGROUP_NUM);
         workerGroup = new NioEventLoopGroup();
         ServerBootstrap b = new ServerBootstrap();
         ChannelInitializer<SocketChannel> channelInit = new ChannelInitializer<SocketChannel>(){
@@ -34,7 +31,7 @@ public class InternalServer extends Server{
         };
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, NumberConstant.ONE_THOUSAND_AND_TWENTY_FOUR)
+                .option(ChannelOption.SO_BACKLOG, FrameConstant.TCP_SO_BACKLOG)
                 .childHandler(channelInit)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
