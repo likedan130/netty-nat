@@ -11,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.Server;
 import server.group.ServerChannelGroup;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
@@ -24,11 +27,13 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss SS");
         //收到外部请求先找配对的内容连接
         Channel proxyChannel = ctx.channel();
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
             //已经存在配对，直接进行消息转发
             Channel internalChannel = ServerChannelGroup.getInternalByProxy(proxyChannel.id());
+            logger.debug("代理服务发起请求-"+proxyChannel.id()+"-:"+format.format(new Date()));
             if(internalChannel != null && internalChannel.isActive()) {
                 byte[] message = new byte[msg.readableBytes()];
                 msg.readBytes(message);
@@ -54,26 +59,29 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        logger.debug("代理服务连接成功："+ctx.channel().id());
         //新的连接建立后进行配对
         Channel internalChannel = ServerChannelGroup.forkChannel(ctx.channel());
         //发送启动代理客户端命令
-        ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeByte(FrameConstant.pv);
-        long serial = System.currentTimeMillis();
-        byteBuf.writeLong(serial);
-        byteBuf.writeByte(CommandEnum.CMD_PROXY_START.getCmd());
-        byteBuf.writeShort(NumberConstant.ONE+ NumberConstant.ONE);
-        //计算校验和
-        int vc = NumberConstant.ZERO;
-        for (byte byteVal : BufUtil.getArray(byteBuf)) {
-            vc = vc + (byteVal & 0xFF);
-        }
-        byteBuf.writeByte(vc);
-        internalChannel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
-            if (!future.isSuccess()) {
-                logger.error("proxyServer send data to sysClient exception occur: ", future.cause());
+        if(internalChannel.isActive()) {
+            ByteBuf byteBuf = Unpooled.buffer();
+            byteBuf.writeByte(FrameConstant.pv);
+            long serial = System.currentTimeMillis();
+            byteBuf.writeLong(serial);
+            byteBuf.writeByte(CommandEnum.CMD_PROXY_START.getCmd());
+            byteBuf.writeShort(NumberConstant.ONE + NumberConstant.ONE);
+            //计算校验和
+            int vc = NumberConstant.ZERO;
+            for (byte byteVal : BufUtil.getArray(byteBuf)) {
+                vc = vc + (byteVal & 0xFF);
             }
-        });
+            byteBuf.writeByte(vc);
+            internalChannel.writeAndFlush(byteBuf).addListener((ChannelFutureListener) future -> {
+                if (!future.isSuccess()) {
+                    logger.error("proxyServer send data to sysClient exception occur: ", future.cause());
+                }
+            });
+        }
     }
 
     /**
@@ -102,7 +110,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         if(!channel.isActive()){
-            logger.debug("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            logger.debug("############### -- 代理服务 -- "+ channel.remoteAddress()+ "  断开了连接！");
             cause.printStackTrace();
             ctx.close();
         }else{

@@ -7,16 +7,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.group.ServerChannelGroup;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private static final Logger logger = LoggerFactory.getLogger(InternalServerHandler.class);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss SS");
         //通过内部的internalChannel收到响应详细，转发到代理服务的请求者
         ChannelId channelId = ctx.channel().id();
         if (ServerChannelGroup.channelPairExist(channelId)) {
             //已经存在配对的连接，直接发送，响应时无配对数据可能是channel断开连接导致的，结束消息传递
             Channel proxyChannel = ServerChannelGroup.getProxyByInternal(channelId);
+            logger.debug("代理服务收到请求-"+proxyChannel.id()+"-:"+format.format(new Date()));
             //不为空且处于已连接活跃状态
             if (proxyChannel != null && proxyChannel.isActive()) {
                 byte[] message = new byte[msg.readableBytes()];
@@ -70,7 +75,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<ByteBuf> 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         if(!channel.isActive()){
-            logger.debug("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+            logger.debug("############### -- 内部服务 -- "+ channel.remoteAddress()+ "  断开了连接！");
             cause.printStackTrace();
             ctx.close();
         }else{
