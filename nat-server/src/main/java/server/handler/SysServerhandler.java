@@ -20,8 +20,6 @@ public class SysServerhandler extends SimpleChannelInboundHandler<ByteBuf> {
             //接入命令
             case 0x01:
                 new LoginProcessor().process(ctx, msg);
-                //15秒心跳检测
-                new HeartbeatProcessor().timeoutDetection(ctx);
                 break;
             //心跳命令
             case 0x02:
