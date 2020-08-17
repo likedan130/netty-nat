@@ -32,7 +32,7 @@ public class LoginProcessor implements Processor {
      */
     @Override
     public void process(ChannelHandlerContext ctx, ByteBuf msg) throws Exception{
-        int passwordLen = msg.getByte(FrameConstant.FRAME_PASSWORD_INDEX) & 0xFF;
+        int passwordLen = msg.getByte(FrameConstant.FRAME_DTAT_FIRST_BYTE_INDEX) & 0xFF;
         byte[] passwordBytes = new byte[passwordLen];
         msg.getBytes(FrameConstant.FRAME_PASSWORD_LEN_INDEX, passwordBytes);
         String password = new String(passwordBytes, "UTF-8");
