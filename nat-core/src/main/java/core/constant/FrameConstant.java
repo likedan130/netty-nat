@@ -6,6 +6,10 @@ public class FrameConstant {
      */
     public static byte pv = (byte)0xAA;
 
+    public static byte CMD_LOGIN = 0x01;
+
+    public static byte CMD_DATA_TRANSFER = (byte)0xFF;
+
     /**
      * 通用成功响应
      */
@@ -22,6 +26,11 @@ public class FrameConstant {
     public static int FRAME_CMD_INDEX = 9;
 
     /**
+     * 协议序号长度
+     */
+    public static int FRAME_SERIAL_LEN = 8;
+
+    /**
      * 数据帧长度参数所在位置
      */
     public static int FRAME_LEN_INDEX = 10;
@@ -29,7 +38,7 @@ public class FrameConstant {
     /**
      * 数据帧长度参数的长度
      */
-    public static int FRAME_LEN_LEN = 2;
+    public static int FRAME_LEN_LEN = 4;
 
     /**
      * 数据帧Data部分第一个字节
@@ -59,7 +68,7 @@ public class FrameConstant {
     /**
      * 数据帧最大字节数
      */
-    public static int FRAME_MAX_BYTES = 65535;
+    public static int FRAME_MAX_BYTES = 655350000;
 
     /**
      * netty读动作空闲时间，0表示不作控制，单位秒
@@ -122,4 +131,14 @@ public class FrameConstant {
     public static int CHANNEL_RELEASE_DELAY = 2;
 
     public static long HEARTBEAT_INTERVAL = 10L;
+
+    public static String DEFAULT_CHARSET = "UTF-8";
+
+    /**
+     * 数据帧最小长度
+     */
+    public static int FRAME_MIN_LEN = 14;
+
+
+    public static int CHANNELID_LEN = 64;
 }

@@ -66,7 +66,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>client.SysClient</mainClass>
+                                    <mainClass>client.InternalClient</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

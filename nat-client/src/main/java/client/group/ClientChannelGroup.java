@@ -1,12 +1,9 @@
 package client.group;
 
+import client.Client;
 import client.InternalClient;
 import core.cache.PropertiesCache;
-import core.constant.FrameConstant;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -14,15 +11,20 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class ClientChannelGroup {
    private final static Logger log = LoggerFactory.getLogger(ClientChannelGroup.class);
+
+   private static PropertiesCache cache = PropertiesCache.getInstance();
     /**
      * 系统连接的缓存
      */
@@ -49,15 +51,9 @@ public class ClientChannelGroup {
      */
     private static ChannelGroup idleInternalGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-    /**
-     * 内部服务的channel组
-     */
-    private static List<Channel> idleInternalList = new ArrayList<>();
-//
-//    /**
-//     * 连接代理客户端缓存关联关系，同步
-//     */
-//    public static int connectProxy = 0;
+    public static ChannelGroup getIdleInternalGroup() {
+        return idleInternalGroup;
+    }
 
     /**
      *按顺序存储proxyClient启动信息
@@ -66,8 +62,8 @@ public class ClientChannelGroup {
      */
     public static List<Object> proxyClient = new ArrayList<>();
 
-    public static List<Channel> getIdleInternalList(){
-        return idleInternalList;
+    public static int getIdleInternalGroupSize() {
+        return idleInternalGroup.size();
     }
 
     public static Map<ChannelId, ChannelId> getChannelPair(){
@@ -76,10 +72,6 @@ public class ClientChannelGroup {
 
     public static ChannelGroup getInternalGroup(){
         return internalGroup;
-    }
-
-    public static void addSysChannel(Channel channel) {
-        sysChannel.put("Sys", channel);
     }
 
     public static void addProxyChannel(Channel channel) {
@@ -100,52 +92,29 @@ public class ClientChannelGroup {
 
     public static void removeIdleInternalChannel(Channel channel) throws Exception{
         idleInternalGroup.remove(channel);
+//        //所有连接都断开了，则判断为丢失与服务器的连接，进行重连
+//        if (idleInternalGroup.size() == 0) {
+//            InternalClient internalClient = new InternalClient();
+//            Client.threadPoolExecutor.execute(() -> {
+//                internalClient.reConnect();
+//            });
+//        }
+        //检查空闲连接是否小于最小空闲连接数
+        if (idleInternalGroup.size() < cache.getInt("internal.channel.min.idle.num")) {
+            InternalClient internalClient = new InternalClient();
+            Client.threadPoolExecutor.execute(() -> {
+                if (!InternalClient.isChanging()) {
+                    internalClient.connect(cache.getInt("internal.channel.max.idle.num") / 2);
+                }
+            });
+        }
     }
 
     public static void addIdleInternalChannel(Channel channel) {
-        idleInternalList.add(channel);
-    }
-
-    /**
-     * 移除部分连接
-     */
-    public static void removeInternalChannel(ByteBuf msg) throws Exception{
-        //移除数量
-//        int connectionNum = msg.getByte(NumberConstant.TWELVE) & 0xFF;
-//        for (int i = 0; i < connectionNum; i++) {
-//            idleInternalList.get(i).close();
-//        }
-    }
-
-    /**
-     * 连接池扩容
-     */
-    public static void connectionPoolExpansion(ByteBuf msg) throws Exception{
-        int connectionNum = msg.getByte(FrameConstant.FRAME_DTAT_FIRST_BYTE_INDEX) & 0xFF;
-        //启动内部客户端连接池
-        InternalClient internalClient = new InternalClient();
-        internalClient.init();
-        internalClient.start(connectionNum);
-    }
-
-    /**
-     * 根据传入的内部channel，fork出一条proxyChannel与之配对
-     */
-    public static synchronized void forkProxyChannel(ChannelId channelId) throws Exception {
-        //获取代理连接
-        if (!idleInternalList.isEmpty()) {
-            List<Channel> idleChannel = idleInternalList.stream().filter(e -> Objects.equals(e.id().toString(),channelId.toString())).collect(Collectors.toList());
-            idleInternalList.remove(idleChannel.get(0));
-            internalGroup.add(idleChannel.get(0));
-            PropertiesCache cache = (PropertiesCache)proxyClient.get(0);
-            Bootstrap client = (Bootstrap)proxyClient.get(1);
-            ChannelFuture channelFuture = client.connect(cache.get("proxy.client.host"),
-                    cache.getInt("proxy.client.port")).sync();
-            Channel channel = channelFuture.channel();
-            channelPair.put(idleChannel.get(0).id(), channel.id());
-            proxyGroup.add(channel);
-        } else {
-            log.error("连接用尽，代理服务" + channelId + "配对失败!!!");
+        idleInternalGroup.add(channel);
+        //检查空闲连接是否大于最大空闲连接数，成立则关闭当前连接
+        if (idleInternalGroup.size() > cache.getInt("internal.channel.max.idle.num")) {
+            channel.close();
         }
     }
 
@@ -157,46 +126,17 @@ public class ClientChannelGroup {
         channelPair.remove(internalChannelId, proxyChannelId);
     }
 
+    public static void removeChannelPair(ChannelId internalChannelId) throws Exception{
+        channelPair.remove(internalChannelId);
+    }
+
     /**
      * 释放占用的连接池连接
      * @param channel
      */
     public static void releaseInternalChannel(Channel channel) {
         internalGroup.remove(channel);
-        idleInternalList.add(channel);
-    }
-
-    /**
-     * 向被代理程序发送实际业务消息
-     * @param byteBuf
-     * @param channelId
-     */
-    public static void writeRequest(ByteBuf byteBuf, ChannelId channelId) throws Exception{
-        if (channelPairExist(channelId)) {
-            Channel proxyChannel = getProxyByInternal(channelId);
-            if (proxyChannel != null) {
-                proxyChannel.writeAndFlush(byteBuf);
-                return;
-            }
-        }
-        throw new Exception("找不到对应channelPair!!!");
-    }
-
-    /**
-     * 向内部服务器发送实际业务的响应消息
-     * @param byteBuf
-     * @param channelId
-     * @throws Exception
-     */
-    public static void writeResponse(ByteBuf byteBuf, ChannelId channelId) throws Exception{
-        if (channelPairExist(channelId)) {
-            Channel internalChannel = getInternalByProxy(channelId);
-            if (internalChannel != null) {
-                internalChannel.writeAndFlush(byteBuf);
-                return;
-            }
-        }
-        throw new Exception("找不到对应channelPair!!!");
+        addIdleInternalChannel(channel);
     }
 
     /**
@@ -238,9 +178,25 @@ public class ClientChannelGroup {
                 .map((x) -> x.getKey())
                 .collect(Collectors.toList());
         if (result.isEmpty() || result.size() != 1) {
-            log.error("channel匹配异常!!!");
-            throw new Exception("channel匹配异常!!!");
+            log.error("找不到proxyChannel"+channelId+"!!!");
+            return null;
         }
         return internalGroup.find(result.get(0));
+    }
+
+    public static void printGroupState() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+" -  当前channel情况：");
+//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+" -  IdleInternalChannel数量：" + ClientChannelGroup.getIdleInternalGroup().size());
+//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+" -  InternalChannel数量：" + ClientChannelGroup.getInternalGroup().size());
+        log.debug("当前channel情况：");
+        log.debug("IdleInternalChannel数量：" + ClientChannelGroup.getIdleInternalGroup().size());
+        log.debug("InternalChannel数量：" + ClientChannelGroup.getInternalGroup().size());
+        log.debug("当前channelPair：");
+        ClientChannelGroup.getChannelPair().entrySet().stream().forEach((entry) -> {
+            log.debug("[InternalChannel：" + entry.getKey()+", ProxyChannel："+entry.getValue()+"]");
+//            System.out.println("[DEBUG] "+dtf.format(localDateTime)+" -  [InternalChannel：" + entry.getKey()+", ProxyChannel："+entry.getValue()+"]");
+        });
     }
 }

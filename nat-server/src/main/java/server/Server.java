@@ -27,9 +27,6 @@ public abstract class Server {
 
     public static ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    public static InternalServer internalServer = new InternalServer();
-
-    public static ProxyServer proxyServer = new ProxyServer();
 
 
     protected void doShutdown(){

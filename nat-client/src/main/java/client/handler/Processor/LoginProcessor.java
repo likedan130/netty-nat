@@ -1,11 +1,8 @@
 package client.handler.Processor;
 
-import client.Client;
-import core.constant.FrameConstant;
-import io.netty.buffer.ByteBuf;
+import core.entity.Frame;
+import core.processor.Processor;
 import io.netty.channel.ChannelHandlerContext;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @Author wneck130@gmail.com
@@ -14,14 +11,7 @@ import java.util.concurrent.TimeUnit;
 public class LoginProcessor implements Processor {
 
     @Override
-    public void process(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception{
-        //可读长度不够，说明不符合协议，不做解析
-        byte result = byteBuf.getByte(FrameConstant.FRAME_RESULT_INDEX);
-        if (result == FrameConstant.RESULT_FAIL) {
-            //重新接入
-        }
-        //10秒延迟发送
-        Client.scheduledExecutor.scheduleAtFixedRate(() -> ctx.writeAndFlush(byteBuf), 0L,
-                FrameConstant.HEARTBEAT_INTERVAL, TimeUnit.SECONDS);
+    public void process(ChannelHandlerContext ctx, Frame byteBuf) throws Exception {
+        //TODO 预留接入命令，在安全等级有需要的时候通过接入命令认证每一条连接
     }
 }

@@ -9,9 +9,18 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import server.decoder.ByteToPojoDecoder;
+import server.decoder.PojoToByteEncoder;
+import server.group.ServerChannelGroup;
 import server.handler.InternalServerHandler;
 
 import java.util.Objects;
+
+/**
+ * @Author wneck130@gmail.com
+ * @function internal服务端，用来接受程序内部的internalClient的连接，从而打通服务端与客户端的网络隔绝
+ */
 public class InternalServer extends Server{
     public void init() {
         new PropertiesLoader().load(System.getProperty("user.dir"));
@@ -26,7 +35,13 @@ public class InternalServer extends Server{
         ChannelInitializer<SocketChannel> channelInit = new ChannelInitializer<SocketChannel>(){
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new InternalServerHandler());
+                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(FrameConstant.FRAME_MAX_BYTES,
+                        FrameConstant.FRAME_LEN_INDEX, FrameConstant.FRAME_LEN_LEN))
+//                        .addLast(new IdleStateHandler(0,0,1))
+                        .addLast(new ByteToPojoDecoder())
+                        .addLast(new PojoToByteEncoder())
+//                        .addLast(new CustomEventHandler())
+                        .addLast(new InternalServerHandler());
             }
         };
         b.group(bossGroup, workerGroup)
@@ -36,7 +51,7 @@ public class InternalServer extends Server{
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(cache.getInt("internal.server.port")).sync();
-        log.debug("InternalServer start internal-server on port " + cache.getInt("internal.server.port") + "......");
+        log.debug("InternalServer started on port " + cache.getInt("internal.server.port") + "......");
         //服务端管道关闭的监听器并同步阻塞,直到server channel关闭,线程才会往下执行,结束进程
         f.channel().closeFuture().sync();
     }
@@ -48,5 +63,12 @@ public class InternalServer extends Server{
             return true;
         }
         return false;
+    }
+
+    public static void main(String[] args) throws Exception{
+        InternalServer internalServer = new InternalServer();
+        internalServer.init();
+        ServerChannelGroup.printGroupState();
+        internalServer.start();
     }
 }

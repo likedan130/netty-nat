@@ -1,15 +1,16 @@
 package client;
 
+import client.group.ClientChannelGroup;
+import client.handler.CustomEventHandler;
 import client.handler.ProxyClientHandler;
 import core.cache.PropertiesCache;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-
-import java.util.ArrayList;
-import java.util.List;
+import io.netty.handler.timeout.IdleStateHandler;
 
 /**
  * @Author wneck130@gmail.com
@@ -24,8 +25,7 @@ public class ProxyClient extends Client {
         cache = PropertiesCache.getInstance();
     }
 
-    public List<Object> start() throws Exception {
-        List<Object> list = new ArrayList<>();
+    public ChannelFuture start() throws Exception {
         //通过Bootstrap启动服务端
         Bootstrap client = new Bootstrap();
         //定义线程组，处理读写和链接事件
@@ -36,31 +36,32 @@ public class ProxyClient extends Client {
             @Override
             protected void initChannel(NioSocketChannel ch) {
                 //加入自定义的handler
-                ch.pipeline().addLast(new ProxyClientHandler());
+                ch.pipeline()
+//                        .addLast(new IdleStateHandler(0,0,30))
+//                        .addLast(new CustomEventHandler())
+                        .addLast(new ProxyClientHandler());
             }
         });
-        list.add(cache);
-        list.add(client);
-        return list;
+        return client.connect(cache.get("proxy.client.host"), cache.getInt("proxy.client.port"));
     }
 
 
-    /**
-     * 获取新建立的连接
-     * @Param timeout 超时时间，单位毫秒
-     * @return
-     */
-    public Channel getChannel(int timeout) throws Exception{
-        long start = System.currentTimeMillis();
-        while (true) {
-            Thread.sleep(0);
-            if (System.currentTimeMillis() - start >= timeout) {
-                throw new Exception("连接被代理服务超时!!!");
-            }
-            if (channel != null) {
-                return channel;
-            }
-        }
-    }
+//    /**
+//     * 获取新建立的连接
+//     * @Param timeout 超时时间，单位毫秒
+//     * @return
+//     */
+//    public Channel getChannel(int timeout) throws Exception{
+//        long start = System.currentTimeMillis();
+//        while (true) {
+//            Thread.sleep(0);
+//            if (System.currentTimeMillis() - start >= timeout) {
+//                throw new Exception("连接被代理服务超时!!!");
+//            }
+//            if (channel != null) {
+//                return channel;
+//            }
+//        }
+//    }
 
 }
