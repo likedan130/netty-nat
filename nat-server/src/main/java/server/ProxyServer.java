@@ -8,6 +8,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 import server.group.ServerChannelGroup;
 import server.handler.ConverterHandler;
 import server.handler.HttpHandler;
@@ -17,6 +18,7 @@ import server.handler.ProxyServerHandler;
  * @Author wneck130@gmail.com
  * @Function proxy服务端，用来接受来自外部的TCP请求
  */
+@Slf4j
 public class ProxyServer extends BaseServer {
 
     /**
