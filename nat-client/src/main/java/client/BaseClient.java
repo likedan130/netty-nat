@@ -1,20 +1,21 @@
-package server;
+package client;
 
 import core.cache.PropertiesCache;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
 
 /**
- * @Author wneck130@gmail.com
- * @Function 服务基类
+ * @author wneck130@gmail.com
+ * @function 客户端基类
  */
-public abstract class Server {
-
-    protected EventLoopGroup bossGroup;
-    protected EventLoopGroup workerGroup;
-    protected ChannelFuture f;
+@Slf4j
+public class BaseClient {
+    protected EventLoopGroup group;
     protected PropertiesCache cache;
     private static int corePoolSize = Runtime.getRuntime().availableProcessors() * 2 + 1;
     private static int maximumPoolSize = Runtime.getRuntime().availableProcessors() * 3;
@@ -25,38 +26,26 @@ public abstract class Server {
 
     public static ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    public static InternalServer internalServer = new InternalServer();
-
-    public static ProxyServer proxyServer = new ProxyServer();
-
     protected void doShutdown(){
         try{
-            if(bossGroup != null){
-                bossGroup.shutdownGracefully().sync();
-            }
-            if(workerGroup != null){
-                workerGroup.shutdownGracefully().sync();
+            if(group != null){
+                group.shutdownGracefully().sync();
             }
 
             if(threadPoolExecutor != null){
                 threadPoolExecutor.shutdownNow();
             }
-            System.out.println("Server has been shutdown gracefully!");
+            log.debug("BaseClient has been shutdown gracefully!");
         }catch(Exception ex){
-            System.out.println("Error when shutdown server!!!");
+            log.error("Error when shutdown client!!!");
         }
     }
 
     protected void addShutdownHook() {
         Runtime runtime = Runtime.getRuntime();
-        runtime.addShutdownHook(new Thread(){
-            @Override
-            public void run() {
-                System.out.println("执行 addShutdownHook...");
-                doShutdown();
-            }
-        });
+        runtime.addShutdownHook(new Thread(() -> {
+            log.debug("执行ShutdownHook...");
+            doShutdown();
+        }));
     }
-
-    abstract boolean isStarted();
 }

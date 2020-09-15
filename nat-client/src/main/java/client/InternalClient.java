@@ -1,48 +1,130 @@
 package client;
 
+import client.decoder.ByteToPojoDecoder;
+import client.decoder.PojoToByteEncoder;
+import client.group.ClientChannelGroup;
+import client.handler.InternalClientHandler;
 import core.cache.PropertiesCache;
+import core.constant.FrameConstant;
 import core.frame.loader.PropertiesLoader;
-import client.handler.*;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author wneck130@gmail.com
  * @Function netty客户端，用于和代理程序的服务端建立连接，以连接池的方式存在，传输代理的业务数据
  */
-public class InternalClient extends Client {
-
-    public void init() {
-        cache = PropertiesCache.getInstance();
-    }
+@Slf4j
+public class InternalClient extends BaseClient {
 
     /**
-     * 启动指定数量的内部的连接
-     * @throws Exception
+     * 连接延时，防止过多消耗系统资源
      */
-    public void start(int num) throws Exception{
+    public static int CONNECTION_DELAY = 1;
+
+    /**
+     * 代理程序内部通信使用的地址
+     */
+    private static String HOST = "internal.server.host";
+
+    /**
+     * 代理程序内部通信使用的端口
+     */
+    private static String PORT = "internal.server.port";
+
+    /**
+     * 代理程序内部连接的初始化数量
+     */
+    private static String INIT_NUM = "internal.channel.init.num";
+
+    public static Bootstrap client = new Bootstrap();
+
+    public static int initNum;
+
+    /**
+     * 客户端重连、扩展标志位，正在连接中时，对外部的连接建立命令静默
+     */
+    public static boolean connectingFlag = false;
+
+    public static boolean isChanging() {
+        return connectingFlag;
+    }
+
+    public void init() throws Exception{
+        new PropertiesLoader().load(System.getProperty("user.dir"));
+        group = new NioEventLoopGroup();
         //定义线程组，处理读写和链接事件
-        Bootstrap client = new Bootstrap();
         client.group(group)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel ch) {
-                        ch.pipeline().addLast(new InternalClientHandler());
+                        ch.pipeline().addFirst(new LengthFieldBasedFrameDecoder(FrameConstant.FRAME_MAX_BYTES,
+                                FrameConstant.FRAME_LEN_INDEX, FrameConstant.FRAME_LEN_LEN))
+                                .addLast(new ByteToPojoDecoder())
+                                .addLast(new PojoToByteEncoder())
+                                .addLast(new InternalClientHandler());
                     }
                 });
-        for (int i = 0;i < num; i++) {
-            //连接服务器
-            ChannelFuture future = client.connect(cache.get("internal.host"),
-                    cache.getInt("internal.port")).sync();
-            //阻塞主进程直到连接断开
-            future.channel().closeFuture().sync();
+    }
+
+    /**
+     * 启动内部连接
+     * @throws Exception
+     */
+    public void start() {
+        cache = PropertiesCache.getInstance();
+        initNum = cache.getInt(INIT_NUM);
+        connect(initNum);
+    }
+
+
+    /**
+     * 启动指定数量的内部的连接
+     * 建立连接失败时，按照简单的延迟重连机制进行重连
+     * @throws Exception
+     */
+    public void connect(Integer num) {
+        cache = PropertiesCache.getInstance();
+        //连接服务器
+        if (ClientChannelGroup.getIdleInternalGroupSize() < num) {
+            connectingFlag = true;
+            try {
+                client.connect(cache.get(HOST),
+                        cache.getInt(PORT)).addListener((future -> {
+                    if (future.isSuccess()) {
+                        connect(num);
+                        CONNECTION_DELAY = 1;
+                    } else {
+                        BaseClient.scheduledExecutor.schedule(() -> connect(num), CONNECTION_DELAY, TimeUnit.SECONDS);
+                        CONNECTION_DELAY = CONNECTION_DELAY * 2;
+                        log.error("启动internalChannel失败，" + CONNECTION_DELAY + "秒后重试!!!");
+                    }
+                }));
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("connect to InternalSever error : ", e);
+                BaseClient.scheduledExecutor.schedule(() -> connect(num), CONNECTION_DELAY, TimeUnit.SECONDS);
+                CONNECTION_DELAY = CONNECTION_DELAY * 2;
+                log.error("启动internalChannel失败，" + CONNECTION_DELAY + "秒后重试!!!");
+            }
+        } else {
+            connectingFlag = false;
         }
+
+    }
+
+
+    public static void main(String[] args) throws Exception{
+        InternalClient internalClient = new InternalClient();
+        internalClient.init();
+        internalClient.start();
+        ClientChannelGroup.printGroupState();
     }
 }

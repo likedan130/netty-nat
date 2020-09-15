@@ -1,12 +1,15 @@
 package client.group;
 
-import client.ProxyClient;
-import io.netty.buffer.ByteBuf;
+import client.BaseClient;
+import client.InternalClient;
+import core.cache.PropertiesCache;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -14,12 +17,14 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * @Author wneck130@gmail.com
+ * @function 客户端连接组，管理所有客户端的TCP连接
+ */
 public class ClientChannelGroup {
+   private final static Logger log = LoggerFactory.getLogger(ClientChannelGroup.class);
 
-    /**
-     * 系统连接的缓存
-     */
-    private static Map<String, Channel> sysChannel = new ConcurrentHashMap<>();
+   private static PropertiesCache cache = PropertiesCache.getInstance();
 
     /**
      * channel对，将服务端与客户端的channel进行配对，便于消息转发
@@ -42,8 +47,20 @@ public class ClientChannelGroup {
      */
     private static ChannelGroup idleInternalGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-    public static void addSysChannel(Channel channel) {
-        sysChannel.put("Sys", channel);
+    public static ChannelGroup getIdleInternalGroup() {
+        return idleInternalGroup;
+    }
+
+    public static int getIdleInternalGroupSize() {
+        return idleInternalGroup.size();
+    }
+
+    public static Map<ChannelId, ChannelId> getChannelPair(){
+        return channelPair;
+    }
+
+    public static ChannelGroup getInternalGroup(){
+        return internalGroup;
     }
 
     public static void addProxyChannel(Channel channel) {
@@ -58,68 +75,50 @@ public class ClientChannelGroup {
         internalGroup.add(channel);
     }
 
-    public static void removeInternalChannel(Channel channel) {
+    public static void removeInternalChannel(Channel channel) throws Exception{
         internalGroup.remove(channel);
     }
 
-    public static void removeIdleInternalChannel(Channel channel) {
+    public static void removeIdleInternalChannel(Channel channel) throws Exception{
         idleInternalGroup.remove(channel);
+        //检查空闲连接是否小于最小空闲连接数
+        if (idleInternalGroup.size() < cache.getInt("internal.channel.min.idle.num")) {
+            InternalClient internalClient = new InternalClient();
+            BaseClient.threadPoolExecutor.execute(() -> {
+                if (!InternalClient.isChanging()) {
+                    internalClient.connect(cache.getInt("internal.channel.max.idle.num") / 2);
+                }
+            });
+        }
     }
 
     public static void addIdleInternalChannel(Channel channel) {
         idleInternalGroup.add(channel);
-    }
-
-    /**
-     * 根据传入的内部channel，fork出一条proxyChannel与之配对
-     * @param channel
-     */
-    public static Channel forkProxyChannel(Channel channel) throws Exception{
-        //获取代理连接
-        ProxyClient proxyClient = new ProxyClient();
-        proxyClient.init();
-        proxyClient.start();
-        Channel proxyChannel = proxyClient.getChannel(2000);
-        //建立配对
-        addChannelPair(channel, proxyChannel);
-        return proxyChannel;
+        //检查空闲连接是否大于最大空闲连接数，成立则关闭当前连接
+        if (idleInternalGroup.size() > cache.getInt("internal.channel.max.idle.num")) {
+            channel.close();
+        }
     }
 
     public static void addChannelPair(Channel internalChannel, Channel proxyChannel) {
         channelPair.put(internalChannel.id(), proxyChannel.id());
     }
 
-    /**
-     * 向被代理程序发送实际业务消息
-     * @param byteBuf
-     * @param channelId
-     */
-    public static void writeRequest(ByteBuf byteBuf, ChannelId channelId) throws Exception{
-        if (channelPairExist(channelId)) {
-            Channel proxyChannel = getProxyByInternal(channelId);
-            if (proxyChannel != null) {
-                proxyChannel.writeAndFlush(byteBuf);
-                return;
-            }
-        }
-        throw new Exception("找不到对应channelPair!!!");
+    public static void removeChannelPair(ChannelId internalChannelId, ChannelId proxyChannelId) throws Exception{
+        channelPair.remove(internalChannelId, proxyChannelId);
+    }
+
+    public static void removeChannelPair(ChannelId internalChannelId) throws Exception{
+        channelPair.remove(internalChannelId);
     }
 
     /**
-     * 向内部服务器发送实际业务的响应消息
-     * @param byteBuf
-     * @param channelId
-     * @throws Exception
+     * 释放占用的连接池连接
+     * @param channel
      */
-    public static void writeResponse(ByteBuf byteBuf, ChannelId channelId) throws Exception{
-        if (channelPairExist(channelId)) {
-            Channel internalChannel = getInternalByProxy(channelId);
-            if (internalChannel != null) {
-                internalChannel.writeAndFlush(byteBuf);
-                return;
-            }
-        }
-        throw new Exception("找不到对应channelPair!!!");
+    public static void releaseInternalChannel(Channel channel) {
+        internalGroup.remove(channel);
+        addIdleInternalChannel(channel);
     }
 
     /**
@@ -145,7 +144,7 @@ public class ClientChannelGroup {
      * @param channelId
      * @return
      */
-    public static Channel getProxyByInternal(ChannelId channelId){
+    public static Channel getProxyByInternal(ChannelId channelId) throws Exception{
         ChannelId proxyChannelId = channelPair.get(channelId);
         return proxyGroup.find(proxyChannelId);
     }
@@ -157,12 +156,23 @@ public class ClientChannelGroup {
      */
     public static Channel getInternalByProxy(ChannelId channelId) throws Exception{
         List<ChannelId> result = channelPair.entrySet().stream()
-                .map(x -> x.getValue())
-                .filter(e -> Objects.equals(e, channelId))
+                .filter(e -> Objects.equals(e.getValue(), channelId))
+                .map((x) -> x.getKey())
                 .collect(Collectors.toList());
         if (result.isEmpty() || result.size() != 1) {
-            throw new Exception("channel匹配异常!!!");
+            log.error("找不到proxyChannel"+channelId+"!!!");
+            return null;
         }
-        return proxyGroup.find(result.get(0));
+        return internalGroup.find(result.get(0));
+    }
+
+    public static void printGroupState() {
+        log.debug("当前channel情况：");
+        log.debug("IdleInternalChannel数量：" + ClientChannelGroup.getIdleInternalGroup().size());
+        log.debug("InternalChannel数量：" + ClientChannelGroup.getInternalGroup().size());
+        log.debug("当前channelPair：");
+        ClientChannelGroup.getChannelPair().entrySet().stream().forEach((entry) -> {
+            log.debug("[InternalChannel：" + entry.getKey()+", ProxyChannel："+entry.getValue()+"]");
+        });
     }
 }

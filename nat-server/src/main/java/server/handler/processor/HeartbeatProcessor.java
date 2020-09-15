@@ -1,28 +1,19 @@
 package server.handler.processor;
 
-import core.constant.FrameConstant;
-import core.enums.CommandEnum;
-import core.utils.BufUtil;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import core.entity.Frame;
+import core.processor.Processor;
 import io.netty.channel.ChannelHandlerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * @Author wneck130@gmail.com
+ * @Function 心跳处理器
+ */
 public class HeartbeatProcessor implements Processor {
-
+    Logger log = LoggerFactory.getLogger(HeartbeatProcessor.class);
     @Override
-    public void process(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        //响应心跳
-        ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeByte(FrameConstant.pv);
-        Long serial = System.currentTimeMillis();
-        byteBuf.writeLong(serial);
-        byteBuf.writeByte(CommandEnum.CMD_HEARTBEAT.getCmd());
-        byteBuf.writeShort(13 + 1);
-        //计算校验和
-        int vc = 0;
-        for (byte byteVal : BufUtil.getArray(byteBuf)) {
-            vc = vc + (byteVal & 0xFF);
-        }
-        byteBuf.writeByte(vc);
+    public void process(ChannelHandlerContext ctx, Frame msg) throws Exception {
+        //TODO 预留心跳命令，对于长连接的保持有特殊需要时启用心跳
     }
 }

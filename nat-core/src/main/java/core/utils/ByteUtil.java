@@ -250,16 +250,6 @@ public final class ByteUtil {
 
     }
     public static void main(String args[]){
-//        String str = "00,0B,05,1B,01,4D,30,3E,FF,55,00,00,63,49";
-//        String str1 = str.replaceAll("FF55","FF");
-//        System.out.println(str);
-//        System.out.println(str1);
-//        byte [] src = {0x00,0x0b,0x05,0x01,(byte) 0xFF,0x55,0x67,(byte) 0xAA,(byte)0x7F,(byte)0xF5,(byte)56};
-//        System.out.println(ByteUtil.toHexString(src,"0x"," "));
-//        byte [] regexbt = {(byte) 0xFF,0x55};
-//        byte [] replaceBt = {(byte)0xFF};
-//        byte [] afterBt = ByteUtil.replaceAll(src,regexbt,replaceBt);
-//        System.out.println(ByteUtil.toHexString(afterBt,"0x"," "));
         byte[] a = fromInt(10);
     }
 

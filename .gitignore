@@ -6,6 +6,8 @@ target/
 mvnw*
 */mvnw*
 .mvn/
+*.class
+out/
 
 ### STS ###
 .apt_generated

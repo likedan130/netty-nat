@@ -1,91 +1,20 @@
 package server.handler.processor;
 
-import core.constant.FrameConstant;
-import core.enums.CommandEnum;
-import core.utils.BufUtil;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import core.entity.Frame;
+import core.processor.Processor;
 import io.netty.channel.ChannelHandlerContext;
-import server.InternalServer;
-import server.ProxyServer;
-import server.Server;
-import server.group.ServerChannelGroup;
-
-import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @Author wneck130@gmail.com
  * @Function 登录命令处理器
  */
 public class LoginProcessor implements Processor {
+    private  final Logger log = LoggerFactory.getLogger(LoginProcessor.class);
 
-    /**
-     * 接入命令处理方法，收到接入指令后先校验接入密码，验证通过后启动内部服务，并向客户端发送建立连接池指令
-     * @param ctx
-     * @param msg
-     * @throws Exception
-     */
     @Override
-    public void process(ChannelHandlerContext ctx, ByteBuf msg) throws Exception{
-        //可读长度不够，说明不符合协议，不做解析
-        if (msg.readableBytes() < 12) {
-            return;
-        }
-        int passwordLen = msg.getByte(12) & 0xFF;
-        byte[] passwordBytes = new byte[passwordLen];
-        msg.getBytes(13, passwordBytes);
-        String password = new String(passwordBytes, "UTF-8");
-        if (Objects.equals(password, "password")) {
-            //认证通过，缓存当前连接，并且创建代理服务端
-            ServerChannelGroup.addSysChannel(ctx.channel());
-            ProxyServer proxyServer = new ProxyServer();
-            proxyServer.init();
-            proxyServer.start();
-        }
-        //启动内部服务
-        if (!Server.internalServer.isStarted()) {
-            InternalServer internalServer = new InternalServer();
-            internalServer.init();
-            internalServer.start();
-        }
-        //响应客户端
-        ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeByte(FrameConstant.pv);
-        Long serial = System.currentTimeMillis();
-        byteBuf.writeLong(serial);
-        byteBuf.writeByte(CommandEnum.CMD_LOGIN.getCmd());
-        byteBuf.writeShort(13 + 1 + 1);
-        byteBuf.writeByte(FrameConstant.RESULT_SUCCESS);
-        //计算校验和
-        int vc = 0;
-        for (byte byteVal : BufUtil.getArray(byteBuf)) {
-            vc = vc + (byteVal & 0xFF);
-        }
-        byteBuf.writeByte(vc);
-        ctx.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if (future.isSuccess()) {
-                    //立刻发送连接池的建立命令给客户端
-                    ByteBuf byteBuf = Unpooled.buffer();
-                    byteBuf.writeByte(FrameConstant.pv);
-                    Long serial = System.currentTimeMillis();
-                    byteBuf.writeLong(serial);
-                    byteBuf.writeByte(CommandEnum.CMD_CONNECTION_POOL.getCmd());
-                    byteBuf.writeShort(13 + 1 + 1);
-                    byteBuf.writeByte(10);//连接池数量
-                    //计算校验和
-                    int vc = 0;
-                    for (byte byteVal : BufUtil.getArray(byteBuf)) {
-                        vc = vc + (byteVal & 0xFF);
-                    }
-                    byteBuf.writeByte(vc);
-                }
-            }
-        });
-
-
+    public void process(ChannelHandlerContext ctx, Frame msg) throws Exception {
+        //TODO 预留接入命令，在安全等级有需要的时候通过接入命令认证每一条连接
     }
 }

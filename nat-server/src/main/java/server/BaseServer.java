@@ -1,13 +1,22 @@
-package client;
+package server;
 
 import core.cache.PropertiesCache;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
-public class Client {
-    protected EventLoopGroup group;
+/**
+ * @Author wneck130@gmail.com
+ * @Function 服务端基类
+ */
+@Slf4j
+public abstract class BaseServer {
+    protected EventLoopGroup bossGroup;
+    protected EventLoopGroup workerGroup;
     protected ChannelFuture f;
     protected PropertiesCache cache;
     private static int corePoolSize = Runtime.getRuntime().availableProcessors() * 2 + 1;
@@ -16,21 +25,23 @@ public class Client {
     public static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize,
             maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(100),
             new ThreadPoolExecutor.DiscardOldestPolicy());
-
     public static ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     protected void doShutdown(){
         try{
-            if(group != null){
-                group.shutdownGracefully().sync();
+            if(bossGroup != null){
+                bossGroup.shutdownGracefully().sync();
+            }
+            if(workerGroup != null){
+                workerGroup.shutdownGracefully().sync();
             }
 
             if(threadPoolExecutor != null){
                 threadPoolExecutor.shutdownNow();
             }
-            System.out.println("Server has been shutdown gracefully!");
+            log.debug("BaseServer has been shutdown gracefully!");
         }catch(Exception ex){
-            System.out.println("Error when shutdown server!!!");
+            log.debug("Error when shutdown server!!!");
         }
     }
 
@@ -39,7 +50,7 @@ public class Client {
         runtime.addShutdownHook(new Thread(){
             @Override
             public void run() {
-                System.out.println("执行 addShutdownHook...");
+                log.debug("执行 addShutdownHook...");
                 doShutdown();
             }
         });
