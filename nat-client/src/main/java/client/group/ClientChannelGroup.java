@@ -169,18 +169,12 @@ public class ClientChannelGroup {
     }
 
     public static void printGroupState() {
-        LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+" -  当前channel情况：");
-//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+" -  IdleInternalChannel数量：" + ClientChannelGroup.getIdleInternalGroup().size());
-//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+" -  InternalChannel数量：" + ClientChannelGroup.getInternalGroup().size());
         log.debug("当前channel情况：");
         log.debug("IdleInternalChannel数量：" + ClientChannelGroup.getIdleInternalGroup().size());
         log.debug("InternalChannel数量：" + ClientChannelGroup.getInternalGroup().size());
         log.debug("当前channelPair：");
         ClientChannelGroup.getChannelPair().entrySet().stream().forEach((entry) -> {
             log.debug("[InternalChannel：" + entry.getKey()+", ProxyChannel："+entry.getValue()+"]");
-//            System.out.println("[DEBUG] "+dtf.format(localDateTime)+" -  [InternalChannel：" + entry.getKey()+", ProxyChannel："+entry.getValue()+"]");
         });
     }
 }

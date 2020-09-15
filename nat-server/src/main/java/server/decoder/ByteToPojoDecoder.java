@@ -23,7 +23,6 @@ public class ByteToPojoDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+ctx.channel().id()+"收到数据："+ ByteUtil.toHexString(BufUtil.getArray(in)));
         if (in.readableBytes() < FrameConstant.FRAME_MIN_LEN) {
             log.error("invalidate msg : " + ByteUtil.toHexString(BufUtil.getArray(in)));
             ctx.close();
@@ -59,9 +58,8 @@ public class ByteToPojoDecoder extends ByteToMessageDecoder {
                     Map<String, Object> data = new HashMap<>();
                     data.put("data", dataBytes);
                     frame.setData(data);
-                    LocalDateTime localDateTime = LocalDateTime.now();
-                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-//                    System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"  InternalClient收到数据："+ ByteUtil.toHexString(Arrays.copyOf(dataBytes, 5)));
+                    break;
+                default:
                     break;
             }
         } catch (Exception e) {

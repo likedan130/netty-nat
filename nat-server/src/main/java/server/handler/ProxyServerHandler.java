@@ -36,12 +36,8 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
             //已经存在配对，直接进行消息转发
             Channel internalChannel = ServerChannelGroup.getInternalByProxy(proxyChannel.id());
-//            logger.debug("外部服务请求发送数据-"+proxyChannel.id());
-            LocalDateTime localDateTime = LocalDateTime.now();
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
             byte[] print = new byte[5];
             msg.getBytes(0, print);
-//            System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+" proxyChannel收到数据："+ ByteUtil.toHexString(print));
             log.debug("proxyChannel收到数据："+ ByteUtil.toHexString(print));
             if(internalChannel != null && internalChannel.isActive()) {
                 byte[] message = new byte[msg.readableBytes()];
@@ -53,14 +49,14 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 frame.setData(map);
                 internalChannel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
                     if (!future.isSuccess()) {
-                        log.error("send data to proxyServer exception occur: ", future.cause());
+                        log.error("发送数据异常: ", future.cause());
                     }
                 });
             }else {
-                log.error("ProxyServerHandler channel is closed");
+                log.error("配对的internalChannel已失效!!!");
             }
         } else {
-            log.error("ProxyServerHandler No matching association");
+            log.error("找不到配对的internalChannel!!!");
         }
     }
 
@@ -86,17 +82,13 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         Channel proxyChannel = ctx.channel();
-        LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
         log.debug("proxyChannel："+ proxyChannel.id() + " 断开连接!!!");
-//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"proxyChannel："+ proxyChannel.id() + " 断开连接!!!");
         if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
             ServerChannelGroup.printGroupState();
             Channel internalChannel = ServerChannelGroup.getInternalByProxy(proxyChannel.id());
             ServerChannelGroup.removeProxyChannel(ctx.channel());
             if (internalChannel ==  null) {
                 log.error("与proxyChannel："+proxyChannel.id()+"配对的internalChannel为null");
-//                System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"internalChannel为null");
                 return;
             }
             ServerChannelGroup.removeChannelPair(internalChannel.id(), ctx.channel().id());
@@ -107,7 +99,6 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
             internalChannel.writeAndFlush(frame);
         } else {
             log.error("proxyChannel："+ proxyChannel.id() + " 未找到配对关系!!!");
-//            System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"proxyChannel："+ proxyChannel.id() + " 未找到配对关系!!!");
             ServerChannelGroup.printGroupState();
         }
     }
@@ -126,9 +117,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
             cause.printStackTrace();
             ctx.close();
         }else{
-//            ctx.fireExceptionCaught(cause);
             cause.printStackTrace();
-//            logger.debug("###############",cause);
         }
     }
 
@@ -141,9 +130,8 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         frame.setCmd(CommandEnum.CMD_START_PROXY_CLIENT.getCmd());
         internalChannel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
             if (!future.isSuccess()) {
-                log.error("proxyServer send data to sysClient exception occur: ", future.cause());
+                log.error("发送数据异常：", future.cause());
             } else {
-//                System.out.println(internalChannel.id() + "发送建立代理连接指令!!!");
                 log.debug(internalChannel.id() + "发送建立代理连接指令!!!");
             }
         });

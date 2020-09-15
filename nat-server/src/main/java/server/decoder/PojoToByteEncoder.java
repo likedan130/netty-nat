@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+/**
+ * @author wneck130@gmail.com
+ * @function POJO对象编码器，将POJO对象转化成字节流
+ */
 @Slf4j
 public class PojoToByteEncoder extends MessageToByteEncoder<Frame> {
 
@@ -23,21 +27,13 @@ public class PojoToByteEncoder extends MessageToByteEncoder<Frame> {
         out.writeByte(msg.getCmd());
         if (msg.getData() == null || msg.getData().get("data") == null) {
             out.writeInt(0);
-            LocalDateTime localDateTime = LocalDateTime.now();
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-//            System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"  InternalServer发送数据：");
         } else {
             out.writeInt(((byte[])msg.getData().get("data")).length);
             out.writeBytes(((byte[])msg.getData().get("data")));
         }
         if (msg.getCmd() == CommandEnum.CMD_DATA_TRANSFER.getCmd()) {
-            LocalDateTime localDateTime = LocalDateTime.now();
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
             byte[] print = Arrays.copyOf((byte[])msg.getData().get("data"), 5);
             log.debug("InternalServer:"+ctx.channel().id()+"发送数据：" + ByteUtil.toHexString(print));
-//            System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"  InternalServer发送数据："+ ByteUtil.toHexString(print));
         }
-//        System.out.println("[DEBUG] "+dtf.format(localDateTime)+ctx.channel().id()+"发送数据："+ ByteUtil.toHexString(BufUtil.getArray(out)));
-
     }
 }

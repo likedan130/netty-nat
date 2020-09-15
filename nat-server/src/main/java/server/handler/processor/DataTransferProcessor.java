@@ -32,10 +32,8 @@ public class DataTransferProcessor implements Processor {
             Channel proxyChannel = ServerChannelGroup.getProxyByInternal(ctx.channel().id());
             proxyChannel.writeAndFlush(response).addListener((future -> {
                 if (future.isSuccess()) {
-                    LocalDateTime localDateTime = LocalDateTime.now();
-                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-                    log.debug("proxyChannel："+ctx.channel().id()+"回复数据" + ByteUtil.toHexString(Arrays.copyOf((byte[])msg.getData().get("data"), 5)));
-//                    System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+" proxyChannel回复数据");
+                    log.debug("proxyChannel："+ctx.channel().id()+"回复数据"
+                            + ByteUtil.toHexString(Arrays.copyOf((byte[])msg.getData().get("data"), 5)));
                 }
             }));
         } else {

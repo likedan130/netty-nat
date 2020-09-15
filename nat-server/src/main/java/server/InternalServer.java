@@ -10,6 +10,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import lombok.extern.slf4j.Slf4j;
 import server.decoder.ByteToPojoDecoder;
 import server.decoder.PojoToByteEncoder;
 import server.group.ServerChannelGroup;
@@ -19,6 +20,7 @@ import server.handler.InternalServerHandler;
  * @Author wneck130@gmail.com
  * @function internal服务端，用来接受程序内部的internalClient的连接，从而打通服务端与客户端的网络隔绝
  */
+@Slf4j
 public class InternalServer extends BaseServer {
 
     /**
