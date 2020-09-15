@@ -16,7 +16,15 @@
             <filtered>true</filtered>
             <outputDirectory>config</outputDirectory>
         </fileSet>
-
+        <fileSet>
+            <directory>${basedir}</directory>
+            <includes>
+                <include>*.yml</include>
+                <include>*.properties</include>
+            </includes>
+            <filtered>true</filtered>
+            <outputDirectory>config</outputDirectory>
+        </fileSet>
         <fileSet>
             <directory>src/main/resources/runScript</directory>
             <outputDirectory>${file.separator}bin</outputDirectory>
