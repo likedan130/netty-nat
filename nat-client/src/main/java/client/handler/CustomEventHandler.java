@@ -1,13 +1,13 @@
 package client.handler;
 
-import client.group.ClientChannelGroup;
-import core.entity.Frame;
-import core.enums.CommandEnum;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleStateEvent;
 
+/**
+ * @Author wneck130@gmail.com
+ * @function
+ */
 public class CustomEventHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {

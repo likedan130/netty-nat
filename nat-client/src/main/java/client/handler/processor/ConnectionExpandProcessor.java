@@ -1,10 +1,13 @@
-package client.handler.Processor;
+package client.handler.processor;
 
 import core.entity.Frame;
 import core.processor.Processor;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
+/**
+ * @Author wneck130@gmail.com
+ * @function
+ */
 public class ConnectionExpandProcessor implements Processor {
 
     @Override

@@ -1,6 +1,6 @@
 package client.group;
 
-import client.Client;
+import client.BaseClient;
 import client.InternalClient;
 import core.cache.PropertiesCache;
 import io.netty.channel.Channel;
@@ -13,22 +13,20 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * @Author wneck130@gmail.com
+ * @function 客户端连接组，管理所有客户端的TCP连接
+ */
 public class ClientChannelGroup {
    private final static Logger log = LoggerFactory.getLogger(ClientChannelGroup.class);
 
    private static PropertiesCache cache = PropertiesCache.getInstance();
-    /**
-     * 系统连接的缓存
-     */
-    private static Map<String, Channel> sysChannel = new ConcurrentHashMap<>();
 
     /**
      * channel对，将服务端与客户端的channel进行配对，便于消息转发
@@ -54,13 +52,6 @@ public class ClientChannelGroup {
     public static ChannelGroup getIdleInternalGroup() {
         return idleInternalGroup;
     }
-
-    /**
-     *按顺序存储proxyClient启动信息
-     *index[0] PropertiesCache配置文件参数
-     * index[1] Bootstrap — 启动类
-     */
-    public static List<Object> proxyClient = new ArrayList<>();
 
     public static int getIdleInternalGroupSize() {
         return idleInternalGroup.size();
@@ -92,17 +83,10 @@ public class ClientChannelGroup {
 
     public static void removeIdleInternalChannel(Channel channel) throws Exception{
         idleInternalGroup.remove(channel);
-//        //所有连接都断开了，则判断为丢失与服务器的连接，进行重连
-//        if (idleInternalGroup.size() == 0) {
-//            InternalClient internalClient = new InternalClient();
-//            Client.threadPoolExecutor.execute(() -> {
-//                internalClient.reConnect();
-//            });
-//        }
         //检查空闲连接是否小于最小空闲连接数
         if (idleInternalGroup.size() < cache.getInt("internal.channel.min.idle.num")) {
             InternalClient internalClient = new InternalClient();
-            Client.threadPoolExecutor.execute(() -> {
+            BaseClient.threadPoolExecutor.execute(() -> {
                 if (!InternalClient.isChanging()) {
                     internalClient.connect(cache.getInt("internal.channel.max.idle.num") / 2);
                 }

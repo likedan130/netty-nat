@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+/**
+ * @Author wneck130@gmail.com
+ * @function 编码器，Java对象转字节
+ */
 public class PojoToByteEncoder extends MessageToByteEncoder<Frame> {
 
     @Override

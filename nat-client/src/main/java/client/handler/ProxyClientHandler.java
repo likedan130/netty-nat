@@ -17,6 +17,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @Author wneck130@gmail.com
+ * @function 代理客户端业务handler
+ */
 @Slf4j
 public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override

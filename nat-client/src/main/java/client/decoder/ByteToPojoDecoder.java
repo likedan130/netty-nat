@@ -9,10 +9,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +23,7 @@ public class ByteToPojoDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         if (in.readableBytes() < FrameConstant.FRAME_MIN_LEN) {
-            log.error("invalidate msg : " + ByteUtil.toHexString(BufUtil.getArray(in)));
+            log.error("无法解析的消息: " + ByteUtil.toHexString(BufUtil.getArray(in)));
             ctx.close();
             return;
         }
@@ -36,7 +32,7 @@ public class ByteToPojoDecoder extends ByteToMessageDecoder {
         byte cmd = in.readByte();
         int len = in.readInt();
         if (in.readableBytes() != len) {
-            log.error("invalidate msg : " + ByteUtil.toHexString(BufUtil.getArray(in)));
+            log.error("无法解析的消息: " + ByteUtil.toHexString(BufUtil.getArray(in)));
             ctx.close();
             return;
         }
@@ -50,15 +46,9 @@ public class ByteToPojoDecoder extends ByteToMessageDecoder {
                 case 0x01:
                     break;
                 case 0x02:
-                    LocalDateTime localDateTime = LocalDateTime.now();
-                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
                     log.debug("InternalClient:"+ctx.channel().id()+"收到心跳指令");
-//                    System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"  InternalClient收到心跳指令");
                     break;
                 case 0x03:
-                    localDateTime = LocalDateTime.now();
-                    dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-//                    System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"  InternalClient收到建立代理连接指令");
                     log.debug("InternalClient:"+ctx.channel().id()+"收到建立代理连接指令");
                     break;
                 case 0x04:
@@ -69,13 +59,13 @@ public class ByteToPojoDecoder extends ByteToMessageDecoder {
                     Map<String, Object> data = new HashMap<>();
                     data.put("data", dataBytes);
                     frame.setData(data);
-                    localDateTime = LocalDateTime.now();
-                    dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-//                    System.out.println("[DEBUG] "+dtf.format(localDateTime)+" - "+ctx.channel().id()+"  InternalClient收到数据："+ ByteUtil.toHexString(Arrays.copyOf(dataBytes, 5)));
+                    break;
+                default:
+                    log.error("无法解析的消息: " + ByteUtil.toHexString(BufUtil.getArray(in)));
                     break;
             }
         } catch (Exception e) {
-            log.error("invalidate msg : " + ByteUtil.toHexString(BufUtil.getArray(in)));
+            log.error("无法解析的消息: " + ByteUtil.toHexString(BufUtil.getArray(in)));
             ctx.close();
             return;
         }

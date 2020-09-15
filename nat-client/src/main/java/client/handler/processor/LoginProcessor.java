@@ -1,4 +1,4 @@
-package client.handler.Processor;
+package client.handler.processor;
 
 import core.entity.Frame;
 import core.processor.Processor;

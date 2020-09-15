@@ -1,4 +1,4 @@
-package client.handler.Processor;
+package client.handler.processor;
 
 import client.group.ClientChannelGroup;
 import core.entity.Frame;

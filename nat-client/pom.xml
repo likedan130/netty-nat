@@ -107,8 +107,8 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <classpathPrefix>libs/*.jar</classpathPrefix>
-                            <mainClass>com.nb.xry.base.FinanceSysApplication</mainClass>
+                            <classpathPrefix>libs/</classpathPrefix>
+                            <mainClass>client.InternalClient</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

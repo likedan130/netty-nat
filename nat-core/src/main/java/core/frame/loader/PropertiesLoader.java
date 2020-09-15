@@ -10,9 +10,9 @@ package core.frame.loader;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.*;
 
@@ -33,24 +33,20 @@ public class PropertiesLoader extends AbstractLoader{
 	private final Logger logger = LogManager.getLogger(PropertiesLoader.class);
 
 	@Override
-	public void load(String path) {
-		try{
-			Properties properties = new Properties();
-			//读取文件
-			List<File> fileList = readFiles(path);
-			for (File file : fileList) {
-				FileInputStream in = new FileInputStream(file);
-				properties.load(in);
-				for(Object key : properties.keySet()){
-					PropertiesCache.getInstance().getProps().putIfAbsent(key.toString(), properties.get(key).toString());
-				}
-			}
-			//加载完成后，启动一个FileWatchService来对文件修改状态进行监控，如果监听到文件修改，则重新加载修改后的文件内容
-			addWatch(path);
-		}catch(Exception e){
-			e.printStackTrace();
-			logger.error(e);
-		}
+	public void load(String path) throws Exception {
+        Properties properties = new Properties();
+        //读取文件
+        File propFile = readFiles(path);
+        if (propFile == null) {
+            throw new Exception("无法加载配置文件!!!");
+        }
+        FileInputStream in = new FileInputStream(propFile);
+        properties.load(in);
+        for (Object key : properties.keySet()) {
+            PropertiesCache.getInstance().getProps().putIfAbsent(key.toString(), properties.get(key).toString());
+        }
+        //加载完成后，启动一个FileWatchService来对文件修改状态进行监控，如果监听到文件修改，则重新加载修改后的文件内容
+        addWatch(propFile.getParent());
 	}
 
 	@Override
@@ -58,11 +54,11 @@ public class PropertiesLoader extends AbstractLoader{
 		try{
 			Properties properties = new Properties();
 			//读取文件
-			File file = new File(path);
-			if (!file.exists()) {
+			File propFile = readFiles(path);
+			if (!propFile.exists()) {
 				return;
 			}
-			FileInputStream in = new FileInputStream(file);
+			FileInputStream in = new FileInputStream(propFile);
 			properties.load(in);
 			for(Object key : properties.keySet()){
 				PropertiesCache.getInstance().getProps().putIfAbsent(key.toString(), properties.get(key).toString());
@@ -83,23 +79,37 @@ public class PropertiesLoader extends AbstractLoader{
 	}
 
 	/**
-	 * 读取指定文件
+	 * 读取指定路径下的文件，按文件层级由浅到深返回第一个匹配的properties文件
 	 * @param path
 	 * @return
 	 */
-	public List<File> readFiles(String path) {
-		List<File> fileList =  new ArrayList<>();
+	public File readFiles(String path) {
 		try{
 			File dir = new File(path);
-			for (File file : dir.listFiles()) {
-				if (file.getName().endsWith(".properties")) {
-					fileList.add(file);
-				}
-			}
+            List<File> subFiles = Stream.of(dir.listFiles()).filter((file) -> file.isFile()).collect(Collectors.toList());
+            if (!subFiles.isEmpty()) {
+                Optional optional = subFiles.stream().filter((file) -> file.getName().endsWith("properties")).findFirst();
+                //当前目录下有需要的文件，直接返回
+                if (optional.isPresent()) {
+                    logger.debug("找到配置文件：" + ((File) optional.get()).getAbsolutePath());
+                    return (File) optional.get();
+                }
+            }
+            //当前目录下没有，则查找子目录
+            List<File> subDirs = Stream.of(dir.listFiles()).filter((file) -> file.isDirectory()).collect(Collectors.toList());
+            if (!subDirs.isEmpty()) {
+                for (File subDir : subDirs) {
+                    File subFile = readFiles(subDir.getPath());
+                    if (subFile != null) {
+                        logger.debug("找到配置文件：" + subFile.getAbsolutePath());
+                        return subFile;
+                    }
+                }
+            }
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		return fileList;
+		return null;
 	}
 
 }

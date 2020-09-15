@@ -22,11 +22,11 @@ public abstract class AbstractLoader {
 	/**
 	 * 加载文件，将文件内容缓存入内存中供程序使用
 	 */
-	public abstract void load(String path);
+	public abstract void load(String path) throws Exception;
 	
 	/**
 	 * 重载文件，当需要实时监测文件的修改状态时，实现本方法
 	 * 可以在文件修改事件触发的时候重载文件，刷新缓存在内存中的文件内容
 	 */
-	public abstract void reload(String path);
+	public abstract void reload(String path) throws Exception;
 }

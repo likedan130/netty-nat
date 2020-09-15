@@ -16,6 +16,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @Author wneck130@gmail.com
+ * @Function proxyServer业务handler
+ */
 @Slf4j
 public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 

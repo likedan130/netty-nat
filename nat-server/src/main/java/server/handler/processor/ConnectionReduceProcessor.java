@@ -5,6 +5,10 @@ import core.processor.Processor;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
+/**
+ * @Author wneck130@gmail.com
+ * @Function
+ */
 public class ConnectionReduceProcessor implements Processor {
 
     @Override

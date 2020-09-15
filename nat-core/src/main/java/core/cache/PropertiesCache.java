@@ -27,7 +27,7 @@ public class PropertiesCache {
      * @return
      */
     public static PropertiesCache getInstance(){
-        return Holder.instatnce;
+        return Holder.INSTANCE;
     }
 
     /**
@@ -36,7 +36,7 @@ public class PropertiesCache {
      *
      */
     private static class Holder{
-        final static PropertiesCache instatnce = new PropertiesCache();
+        final static PropertiesCache INSTANCE = new PropertiesCache();
     }
 
     private final ConcurrentMap<String, String> props = new ConcurrentHashMap<String, String>();

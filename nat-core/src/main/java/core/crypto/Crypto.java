@@ -53,7 +53,7 @@ public class Crypto {
         }
     }
 
-    public void setIV(byte[] iv) {
+    public void setIv(byte[] iv) {
         IvParameterSpec parameterData = new IvParameterSpec(iv);
         try {
             mAlgorithmParameters.init(parameterData);

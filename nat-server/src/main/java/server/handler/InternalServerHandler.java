@@ -49,7 +49,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
         if (ServerChannelGroup.idleInternalGroupIsEmpty()) {
             new Thread(() -> {
                 try {
-                    ProxyServer proxyServer = ProxyServer.getInstance();
+                    ProxyServer proxyServer = new ProxyServer();
                     proxyServer.init();
                     proxyServer.start();
                 } catch (Exception e) {
@@ -57,16 +57,6 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
                     logger.error("启动ProxyServer异常:" + e);
                 }
             }).start();
-//            new Thread(() -> {
-//                try {
-//                    ProxyServer proxyServer = ProxyServer.getInstance();
-//                    proxyServer.init();
-//                    proxyServer.startHttp();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    logger.error("启动ProxyServer异常:" + e);
-//                }
-//            }).start();
         }
         ServerChannelGroup.addIdleInternalChannel(ctx.channel());
     }

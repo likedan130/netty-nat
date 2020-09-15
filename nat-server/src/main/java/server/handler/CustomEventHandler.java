@@ -6,6 +6,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleStateEvent;
 
+/**
+ * @Author wneck130@gmail.com
+ * @Function 用户自定义事件处理器
+ */
 public class CustomEventHandler extends ChannelInboundHandlerAdapter {
 
     @Override

@@ -1,7 +1,7 @@
 package client.handler;
 
 import client.group.ClientChannelGroup;
-import client.handler.Processor.*;
+import client.handler.processor.*;
 import core.entity.Frame;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

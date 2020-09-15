@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public abstract class AbstractSingleton implements Serializable {
 
-    private static final ConcurrentMap<String, AbstractSingleton> classMap = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, AbstractSingleton> CLASS = new ConcurrentHashMap<>();
     private static final long serialVersionUID = -8691344637857430181L;
     private static final Logger logger = LogManager.getLogger(AbstractSingleton.class);
 
@@ -33,16 +33,16 @@ public abstract class AbstractSingleton implements Serializable {
      */
     AbstractSingleton () throws Exception {
         String clazzName = this.getClass().getName();
-        if (classMap.containsKey(clazzName)) {
+        if (CLASS.containsKey(clazzName)) {
             throw new Exception("Cannot construct instance for singleton class " + clazzName
                     + ", cause an instance has existed !");
         } else {
-            synchronized (classMap) {
-                if (classMap.containsKey(clazzName)) {
+            synchronized (CLASS) {
+                if (CLASS.containsKey(clazzName)) {
                     throw new Exception("Cannot construct instance for singleton class " + clazzName
                             + ", cause an instance has existed !");
                 } else {
-                    classMap.putIfAbsent(clazzName, this);
+                    CLASS.putIfAbsent(clazzName, this);
                 }
             }
         }
@@ -57,17 +57,17 @@ public abstract class AbstractSingleton implements Serializable {
      */
     public static <T extends AbstractSingleton> T newInstance(Class<T> clazz) {
         String className = clazz.getName();
-        if (!classMap.containsKey(className)) {
+        if (!CLASS.containsKey(className)) {
             try {
                 T instatnce = clazz.newInstance();
-                classMap.putIfAbsent(clazz.getName(), instatnce);
+                CLASS.putIfAbsent(clazz.getName(), instatnce);
                 return instatnce;
             } catch (Exception e) {
                 logger.error(e);
                 return null;
             }
         } else {
-            return (T)classMap.get(className);
+            return (T)CLASS.get(className);
         }
     }
 }

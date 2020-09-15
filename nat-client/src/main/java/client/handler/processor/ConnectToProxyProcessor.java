@@ -1,4 +1,4 @@
-package client.handler.Processor;
+package client.handler.processor;
 
 import client.ProxyClient;
 import client.group.ClientChannelGroup;
@@ -7,9 +7,12 @@ import core.processor.Processor;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @Author wneck130@gmail.com
+ * @function
+ */
 @Slf4j
 public class ConnectToProxyProcessor implements Processor {
 

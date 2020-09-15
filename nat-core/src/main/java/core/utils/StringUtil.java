@@ -30,7 +30,7 @@ public final class StringUtil {
      * @param s
      * @return
      */
-    public static String encodeMD5(String s){
+    public static String encodeMd5(String s){
         if(isEmpty(s)){
             return null;
         }
@@ -93,8 +93,9 @@ public final class StringUtil {
      * @return
      */
     public static String formatJson(String jsonStr) {
-        if (null == jsonStr || "".equals(jsonStr))
+        if (null == jsonStr || "".equals(jsonStr)) {
             return "";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append('\n');
         char last = '\0';

@@ -45,7 +45,7 @@ public class FileWatchService {
 				for(WatchEvent<?> event : key.pollEvents()){
 					Kind<?> kind = event.kind();
 					if(kind.name().equals(StandardWatchEventKinds.ENTRY_MODIFY.name())){
-						loader.reload(path + File.separator+"properties.properties");
+						loader.reload(pathStr);
 					}
 					logger.debug("A "+kind+" example is detected on "+event.context().toString());
 				}

@@ -1,4 +1,4 @@
-package server.handler.processor;
+package client.handler.processor;
 
 import core.entity.Frame;
 import core.processor.Processor;
@@ -6,12 +6,12 @@ import io.netty.channel.ChannelHandlerContext;
 
 /**
  * @Author wneck130@gmail.com
- * @Function
+ * @function
  */
-public class ConnectionExpandProcessor implements Processor {
+public class HeartbeatProcessor implements Processor {
 
     @Override
     public void process(ChannelHandlerContext ctx, Frame msg) throws Exception {
-        //客户端对建立连接池命令的响应，无业务需要暂时不实现
+        //TODO 预留心跳命令，对于长连接的保持有特殊需要时启用心跳
     }
 }

@@ -9,27 +9,20 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import server.group.ServerChannelGroup;
+import server.handler.ConverterHandler;
 import server.handler.HttpHandler;
 import server.handler.ProxyServerHandler;
-
-import java.util.Objects;
 
 /**
  * @Author wneck130@gmail.com
  * @Function proxy服务端，用来接受来自外部的TCP请求
  */
-public class ProxyServer extends Server {
+public class ProxyServer extends BaseServer {
 
-    private ProxyServer () {
-    }
-
-    public static class Holder {
-        private static ProxyServer instance = new ProxyServer();
-    }
-
-    public static ProxyServer getInstance() {
-        return Holder.instance;
-    }
+    /**
+     * 代理程序对外提供的服务端口
+     */
+    private static String PORT = "proxy.server.port";
 
     public void init() {
         cache = PropertiesCache.getInstance();
@@ -37,7 +30,8 @@ public class ProxyServer extends Server {
     }
 
     public synchronized void start() throws Exception{
-        if (ServerChannelGroup.getProxyServerStarted()) {
+        //如果已经启动了proxyServer，静默
+        if (ServerChannelGroup.proxyServer != null) {
             return;
         }
         bossGroup = new NioEventLoopGroup(FrameConstant.BOSSGROUP_NUM);
@@ -46,7 +40,8 @@ public class ProxyServer extends Server {
         ChannelInitializer<SocketChannel> channelInit = new ChannelInitializer<SocketChannel>(){
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new HttpHandler())
+                ch.pipeline().addLast("converter", new ConverterHandler())
+                        .addLast("http", new HttpHandler())
                         .addLast(new ProxyServerHandler());
             }
         };
@@ -56,22 +51,13 @@ public class ProxyServer extends Server {
                 .childHandler(channelInit)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
-        f = b.bind(cache.getInt("proxy.server.port")).sync().addListener((future -> {
+        f = b.bind(cache.getInt(PORT)).sync().addListener((future -> {
             if (future.isSuccess()) {
-                ServerChannelGroup.setProxyServerStarted(Boolean.TRUE);
+                ServerChannelGroup.proxyServer = f;
             }
         }));
-        log.debug("ProxyServer started on port " + cache.getInt("proxy.server.port") + "......");
+        log.debug("ProxyServer started on port " + cache.getInt(PORT) + "......");
         f.channel().closeFuture().sync();
-        ServerChannelGroup.setProxyServerStarted(Boolean.FALSE);
-        ProxyServer.getInstance().start();
-    }
-
-    @Override
-    public boolean isStarted() {
-        if (!Objects.equals(null, f) && f.channel().isActive()) {
-            return true;
-        }
-        return false;
+        ServerChannelGroup.proxyServer = null;
     }
 }

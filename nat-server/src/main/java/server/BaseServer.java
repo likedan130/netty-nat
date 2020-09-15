@@ -3,6 +3,7 @@ package server;
 import core.cache.PropertiesCache;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,10 +11,10 @@ import java.util.concurrent.*;
 
 /**
  * @Author wneck130@gmail.com
- * @Function 服务基类
+ * @Function 服务端基类
  */
-public abstract class Server {
-    protected static final Logger log =LoggerFactory.getLogger(Server.class);
+@Slf4j
+public abstract class BaseServer {
     protected EventLoopGroup bossGroup;
     protected EventLoopGroup workerGroup;
     protected ChannelFuture f;
@@ -24,10 +25,7 @@ public abstract class Server {
     public static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize,
             maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(100),
             new ThreadPoolExecutor.DiscardOldestPolicy());
-
     public static ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
-
-
 
     protected void doShutdown(){
         try{
@@ -41,7 +39,7 @@ public abstract class Server {
             if(threadPoolExecutor != null){
                 threadPoolExecutor.shutdownNow();
             }
-            log.debug("Server has been shutdown gracefully!");
+            log.debug("BaseServer has been shutdown gracefully!");
         }catch(Exception ex){
             log.debug("Error when shutdown server!!!");
         }
@@ -57,6 +55,4 @@ public abstract class Server {
             }
         });
     }
-
-    abstract boolean isStarted();
 }

@@ -5,13 +5,17 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
 
-public class Client {
-    protected static final InternalLogger log = InternalLoggerFactory.getInstance(Client.class);
+/**
+ * @author wneck130@gmail.com
+ * @function 客户端基类
+ */
+@Slf4j
+public class BaseClient {
     protected EventLoopGroup group;
-    protected ChannelFuture f;
     protected PropertiesCache cache;
     private static int corePoolSize = Runtime.getRuntime().availableProcessors() * 2 + 1;
     private static int maximumPoolSize = Runtime.getRuntime().availableProcessors() * 3;
@@ -31,20 +35,17 @@ public class Client {
             if(threadPoolExecutor != null){
                 threadPoolExecutor.shutdownNow();
             }
-            log.debug("Server has been shutdown gracefully!");
+            log.debug("BaseClient has been shutdown gracefully!");
         }catch(Exception ex){
-            log.error("Error when shutdown server!!!");
+            log.error("Error when shutdown client!!!");
         }
     }
 
     protected void addShutdownHook() {
         Runtime runtime = Runtime.getRuntime();
-        runtime.addShutdownHook(new Thread(){
-            @Override
-            public void run() {
-                log.debug("执行 addShutdownHook...");
-                doShutdown();
-            }
-        });
+        runtime.addShutdownHook(new Thread(() -> {
+            log.debug("执行ShutdownHook...");
+            doShutdown();
+        }));
     }
 }
