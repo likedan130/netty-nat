@@ -172,47 +172,47 @@ public class ServerChannelGroup {
     /**
      * 按照配置重新扩容/缩减internalGroup的数量
      */
-    public static void reSizeInternalChannelNum() {
-        //判断连接池剩余连接
-        if(idleInternalGroup.size() < cache.getInt(INIT_NUM)){
-            //发送连接池扩容命令
-            ByteBuf byteBuf = Unpooled.buffer();
-            byteBuf.writeByte(FrameConstant.pv);
-            long serial = System.currentTimeMillis();
-            byteBuf.writeLong(serial);
-            byteBuf.writeShort(FrameConstant.CHANNEL_POOL_NUM_LEN + FrameConstant.VC_CODE_LEN);
-            //扩容连接池数量
-            byteBuf.writeByte(cache.getInt(EXPAND_NUM));
-            //计算校验和
-            int vc = 0;
-            for (byte byteVal : BufUtil.getArray(byteBuf)) {
-                vc = vc + (byteVal & 0xFF);
-            }
-            byteBuf.writeByte(vc);
-            Channel sysClient = sysChannel.get("Sys");
-            sysClient.writeAndFlush(byteBuf);
-        }
-        if(idleInternalGroup.size() > cache.getInt(MAX_IDLE)){
-            //移除连接数量
-            int num = idleInternalGroup.size() - cache.getInt(MAX_IDLE);
-            //发送移除部分连接命令
-            ByteBuf byteBuf = Unpooled.buffer();
-            byteBuf.writeByte(FrameConstant.pv);
-            long serial = System.currentTimeMillis();
-            byteBuf.writeLong(serial);
-            byteBuf.writeShort(FrameConstant.CHANNEL_POOL_NUM_LEN + FrameConstant.VC_CODE_LEN);
-            //连接池移除数量
-            byteBuf.writeByte(num);
-            //计算校验和
-            int vc = 0;
-            for (byte byteVal : BufUtil.getArray(byteBuf)) {
-                vc = vc + (byteVal & 0xFF);
-            }
-            byteBuf.writeByte(vc);
-            Channel sysClient = sysChannel.get("Sys");
-            sysClient.writeAndFlush(byteBuf);
-        }
-    }
+//    public static void reSizeInternalChannelNum() {
+//        //判断连接池剩余连接
+//        if(idleInternalGroup.size() < cache.getInt(INIT_NUM)){
+//            //发送连接池扩容命令
+//            ByteBuf byteBuf = Unpooled.buffer();
+//            byteBuf.writeByte(FrameConstant.pv);
+//            long serial = System.currentTimeMillis();
+//            byteBuf.writeLong(serial);
+//            byteBuf.writeShort(FrameConstant.CHANNEL_POOL_NUM_LEN + FrameConstant.VC_CODE_LEN);
+//            //扩容连接池数量
+//            byteBuf.writeByte(cache.getInt(EXPAND_NUM));
+//            //计算校验和
+//            int vc = 0;
+//            for (byte byteVal : BufUtil.getArray(byteBuf)) {
+//                vc = vc + (byteVal & 0xFF);
+//            }
+//            byteBuf.writeByte(vc);
+//            Channel sysClient = sysChannel.get("Sys");
+//            sysClient.writeAndFlush(byteBuf);
+//        }
+//        if(idleInternalGroup.size() > cache.getInt(MAX_IDLE)){
+//            //移除连接数量
+//            int num = idleInternalGroup.size() - cache.getInt(MAX_IDLE);
+//            //发送移除部分连接命令
+//            ByteBuf byteBuf = Unpooled.buffer();
+//            byteBuf.writeByte(FrameConstant.pv);
+//            long serial = System.currentTimeMillis();
+//            byteBuf.writeLong(serial);
+//            byteBuf.writeShort(FrameConstant.CHANNEL_POOL_NUM_LEN + FrameConstant.VC_CODE_LEN);
+//            //连接池移除数量
+//            byteBuf.writeByte(num);
+//            //计算校验和
+//            int vc = 0;
+//            for (byte byteVal : BufUtil.getArray(byteBuf)) {
+//                vc = vc + (byteVal & 0xFF);
+//            }
+//            byteBuf.writeByte(vc);
+//            Channel sysClient = sysChannel.get("Sys");
+//            sysClient.writeAndFlush(byteBuf);
+//        }
+//    }
 
     public static void addChannelPair(ChannelId internalChannelId, ChannelId proxyChannelId) {
         channelPair.put(internalChannelId, proxyChannelId);
