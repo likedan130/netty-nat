@@ -2,6 +2,7 @@ package server.handler;
 
 import core.entity.Frame;
 import core.enums.CommandEnum;
+import core.utils.BufUtil;
 import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -11,8 +12,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import server.group.ServerChannelGroup;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,15 +30,16 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        //收到外部请求先找配对的内容连接
-        Channel proxyChannel = ctx.channel();
-        if (ServerChannelGroup.channelPairExist(proxyChannel.id())) {
+
+        if (ServerChannelGroup.channelPairExist(ctx.channel().id())) {
             //已经存在配对，直接进行消息转发
-            Channel internalChannel = ServerChannelGroup.getInternalByProxy(proxyChannel.id());
+            Channel internalChannel = ServerChannelGroup.getInternalByProxy(ctx.channel().id());
             byte[] print = new byte[5];
             msg.getBytes(0, print);
-            log.debug("proxyChannel收到数据："+ ByteUtil.toHexString(print));
-            if(internalChannel != null && internalChannel.isActive()) {
+            log.debug("\nRequestor数据："+ ByteUtil.toHexString(BufUtil.getArray(msg))
+                +"\r\nRequestor>>[{}]>>ServerProxy----ServerInternal--[{}]--Client",
+                    ctx.channel().id(), internalChannel.id());
+            if(internalChannel != null) {
                 byte[] message = new byte[msg.readableBytes()];
                 msg.readBytes(message);
                 Map<String, Object> map = new HashMap<>();
@@ -49,14 +49,20 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 frame.setData(map);
                 internalChannel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
                     if (!future.isSuccess()) {
-                        log.error("发送数据异常: ", future.cause());
+                        log.error("发送数据异常: ", future.cause()
+                                + "\nRequestor--[{}]--ServerProxy--XX--ServerInternal--[{}]--Client",
+                                ctx.channel().id(), internalChannel.id());
                     }
                 });
             }else {
-                log.error("配对的internalChannel已失效!!!");
+                log.error("配对的internalChannel已失效!!!"
+                    + "\r\nRequestor--[{}]--ServerProxy----ServerInternal--[XX]--Client",
+                        ctx.channel().id());
             }
         } else {
-            log.error("找不到配对的internalChannel!!!");
+            log.error("找不到配对的internalChannel!!!"
+                            + "\r\nRequestor--[{}]--ServerProxy----ServerInternal--[XX]--Client",
+                    ctx.channel().id());
         }
     }
 
@@ -67,11 +73,12 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.debug("外部服务请求建立连接："+ctx.channel().id());
         //新的连接建立后进行配对
         Channel internalChannel = ServerChannelGroup.forkChannel(ctx.channel());
         fullyConnect(internalChannel);
         ServerChannelGroup.printGroupState();
+        log.debug("建立连接：Requestor--[{}]--ServerProxy----ServerInternal--[{}]--Client",
+                ctx.channel().id(), internalChannel.id());
     }
 
     /**
@@ -96,7 +103,13 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
             //确保客户端连接情况和服务端一致，发送连接回收命令给客户端
             Frame frame = new Frame();
             frame.setCmd(CommandEnum.CMD_CHANNEL_RECYCLE.getCmd());
-            internalChannel.writeAndFlush(frame);
+            internalChannel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
+                if (!future.isSuccess()) {
+                    log.error("发送连接回收命令异常: ", future.cause()
+                                    + "\nRequestor--[{}]--ServerProxy--XX--ServerInternal--[{}]--Client",
+                            ctx.channel().id(), internalChannel.id());
+                }
+            });
         } else {
             log.error("proxyChannel："+ proxyChannel.id() + " 未找到配对关系!!!");
             ServerChannelGroup.printGroupState();
@@ -113,26 +126,28 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         if(!channel.isActive()){
-            log.debug("############### -- 代理服务 -- "+ channel.remoteAddress()+ "  断开了连接！");
-            cause.printStackTrace();
             ctx.close();
-        }else{
-            cause.printStackTrace();
         }
+        log.error("ServerProxy[{}]发生异常：{}", ctx.channel().id(), cause.getStackTrace());
     }
 
     /**
      * proxyChannel与internalChannel建立配对后，通知客户端建立与被代理服务的连接并缓存配对关系
      */
-    public void fullyConnect(Channel internalChannel) {
+    public void fullyConnect(Channel internalChannel) throws Exception{
         //发送启动代理客户端命令
         Frame frame = new Frame();
         frame.setCmd(CommandEnum.CMD_START_PROXY_CLIENT.getCmd());
+        Channel proxyChannel = ServerChannelGroup.getProxyByInternal(internalChannel.id());
         internalChannel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
             if (!future.isSuccess()) {
-                log.error("发送数据异常：", future.cause());
+                log.debug("Server数据发送异常："+ frame.toString()
+                                +"\r\nRequestor--[{}]--ServerProxy--XX--ServerInternal--[{}]--Client",
+                        proxyChannel.id(), internalChannel.id());
             } else {
-                log.debug(internalChannel.id() + "发送建立代理连接指令!!!");
+                log.debug("Server数据："+ frame.toString()
+                                +"\r\nRequestor--[{}]--ServerProxy>>>>ServerInternal--[{}]--Client",
+                        proxyChannel.id(), internalChannel.id());
             }
         });
     }

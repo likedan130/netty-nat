@@ -43,7 +43,7 @@ public class ProxyServer extends BaseServer {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline().addLast("converter", new ConverterHandler())
-                        .addLast("http", new HttpHandler())
+//                        .addLast("http", new HttpHandler())
                         .addLast(new ProxyServerHandler());
             }
         };

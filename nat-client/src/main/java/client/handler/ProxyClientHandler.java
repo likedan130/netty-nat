@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,32 +26,37 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         byte[] print = new byte[5];
         msg.getBytes(0, print);
-        log.debug("proxyClient:"+ctx.channel().id()+"收到数据："+ ByteUtil.toHexString(print));
-        //判断是否已经建立配对关系
+        byte[] message = new byte[msg.readableBytes()];
+        msg.readBytes(message);
+        //获取内部客户端
         if (ClientChannelGroup.channelPairExist(ctx.channel().id())) {
-            //获取内部客户端
             Channel internalChannel = ClientChannelGroup.getInternalByProxy(ctx.channel().id());
-            //判断客户端channel是否活跃
-            if (internalChannel != null && internalChannel.isActive()) {
-                byte[] message = new byte[msg.readableBytes()];
-                msg.readBytes(message);
-                Map<String, Object> map = new HashMap<>();
-                map.put("data", message);
-                Frame frame = new Frame();
-                frame.setCmd(CommandEnum.CMD_DATA_TRANSFER.getCmd());
-                frame.setData(map);
-                internalChannel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
-                    if (future.isSuccess()) {
-                        log.error("向{}回复业务数据{}成功!!!", internalChannel.id(), Arrays.copyOf(message, 5));
-                    }
-                });
+            log.debug("Responsor数据："+ ByteUtil.toHexString(message)
+                            + "\n Server--[{}]--ClientInternal----ClientProxy<<[{}]<<Responsor"
+                    , internalChannel.id(), ctx.channel().id());
+            //判断是否已经建立配对关系
+            if (internalChannel != null) {
+                //判断客户端channel是否活跃
+                if (internalChannel != null && internalChannel.isActive()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("data", message);
+                    Frame frame = new Frame();
+                    frame.setCmd(CommandEnum.CMD_DATA_TRANSFER.getCmd());
+                    frame.setData(map);
+                    internalChannel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
+                        if (future.isSuccess()) {
+                            log.debug("Responsor数据："+ ByteUtil.toHexString(message)
+                                            + "\n Server<<[{}]<<ClientInternal----ClientProxy--[{}]--Responsor"
+                                    , internalChannel.id(), ctx.channel().id());
+                        }
+                    });
+                }
             }
         }
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.debug("proxyChannel:" + ctx.channel().id()+" 建立与被代理服务间的连接!!!");
         ClientChannelGroup.addProxyChannel(ctx.channel());
         ClientChannelGroup.printGroupState();
     }

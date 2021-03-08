@@ -55,7 +55,7 @@ public class InternalServer extends BaseServer {
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
         f = b.bind(cache.getInt(PORT)).sync();
-        log.debug("InternalServer started on port " + cache.getInt(PORT) + "......");
+        log.debug("InternalServer started on port {}......", cache.getInt(PORT));
         f.channel().closeFuture().sync();
     }
 

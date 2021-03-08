@@ -24,20 +24,31 @@ public class DataTransferProcessor implements Processor {
 
     @Override
     public void process(ChannelHandlerContext ctx, Frame msg) throws Exception {
-
-        //根据internalChannel找到对应的proxyChannel
-        if (ServerChannelGroup.channelPairExist(ctx.channel().id())) {
+        Channel internalChannel = ctx.channel();
+        if (ServerChannelGroup.channelPairExist(internalChannel.id())) {
+            //根据internalChannel找到对应的proxyChannel
+            Channel proxyChannel = ServerChannelGroup.getProxyByInternal(internalChannel.id());
+            if (proxyChannel == null) {
+                log.error("配对关系异常：[InternalChannel：{}, ProxyChannel：null]", internalChannel);
+                throw new Exception("配对关系异常：[InternalChannel："+internalChannel+", ProxyChannel：null]");
+            }
+            log.debug("Responsor数据：" + msg.toString() +
+                            "\n Requestor--[{}]--ServerProxy----ServerInternal<<[{}]<<Client",
+                    proxyChannel.id(), internalChannel.id());
             ByteBuf response = Unpooled.buffer();
             response.writeBytes((byte[])msg.getData().get("data"));
-            Channel proxyChannel = ServerChannelGroup.getProxyByInternal(ctx.channel().id());
             proxyChannel.writeAndFlush(response).addListener((future -> {
                 if (future.isSuccess()) {
-                    log.debug("proxyChannel："+ctx.channel().id()+"回复数据"
-                            + ByteUtil.toHexString(Arrays.copyOf((byte[])msg.getData().get("data"), 5)));
+                    log.debug("Responsor数据：" + msg.toString() +
+                                    "\n Requestor<<[{}]<<ServerProxy----ServerInternal--[{}]--Client",
+                            proxyChannel.id(), internalChannel.id());
                 }
             }));
         } else {
             //proxy连接可能已经被主动断开，忽略本条消息
+            log.debug("Responsor数据发送失败：" + msg.toString() +
+                            "\n Requestor--XX--ServerProxy----ServerInternal--[{}]--Client",
+                    internalChannel.id());
             return;
         }
     }

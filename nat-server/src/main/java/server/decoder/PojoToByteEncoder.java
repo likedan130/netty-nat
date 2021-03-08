@@ -31,9 +31,5 @@ public class PojoToByteEncoder extends MessageToByteEncoder<Frame> {
             out.writeInt(((byte[])msg.getData().get("data")).length);
             out.writeBytes(((byte[])msg.getData().get("data")));
         }
-        if (msg.getCmd() == CommandEnum.CMD_DATA_TRANSFER.getCmd()) {
-            byte[] print = Arrays.copyOf((byte[])msg.getData().get("data"), 5);
-            log.debug("InternalServer:"+ctx.channel().id()+"发送数据：" + ByteUtil.toHexString(print));
-        }
     }
 }
