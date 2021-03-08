@@ -4,6 +4,8 @@ import core.entity.Frame;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.Synchronized;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.ProxyServer;
@@ -14,8 +16,8 @@ import server.handler.processor.*;
  * @Author wneck130@gmail.com
  * @function 业务处理handler，所有协议命令在本类中处理
  */
+@Slf4j
 public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
-    private static final Logger logger = LoggerFactory.getLogger(InternalServerHandler.class);
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Frame msg) throws Exception {
         byte cmd = msg.getCmd();
@@ -47,6 +49,19 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         //当第一条可用的internalChannel建立时，启动proxyServer开始提供代理服务
         if (ServerChannelGroup.idleInternalGroupIsEmpty()) {
+            startProxyServer(ctx);
+        } else {
+            ServerChannelGroup.addIdleInternalChannel(ctx.channel());
+        }
+        log.debug("建立连接：ServerInternal--[{}]--ClientInternal", ctx.channel().id());
+    }
+
+    /**
+     * 启动代理服务端暂时使用锁保证一次
+     * @param ctx
+     */
+    static synchronized void startProxyServer(ChannelHandlerContext ctx) {
+        if (ServerChannelGroup.idleInternalGroupIsEmpty()) {
             new Thread(() -> {
                 try {
                     ProxyServer proxyServer = new ProxyServer();
@@ -54,11 +69,13 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
                     proxyServer.start();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    logger.error("启动ProxyServer异常:" + e);
+                    log.error("启动ProxyServer异常:" + e);
                 }
             }).start();
+            ServerChannelGroup.addIdleInternalChannel(ctx.channel());
+        } else {
+            ServerChannelGroup.addIdleInternalChannel(ctx.channel());
         }
-        ServerChannelGroup.addIdleInternalChannel(ctx.channel());
     }
 
     @Override
@@ -76,14 +93,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        Channel channel = ctx.channel();
-        if(!channel.isActive()){
-            logger.debug("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
-            cause.printStackTrace();
-            ctx.close();
-        }else{
-            ctx.fireExceptionCaught(cause);
-            logger.debug("###############",cause);
-        }
+        log.error("ServerInternal[{}]发生异常：{}", ctx.channel().id(), cause.getStackTrace());
+        ctx.close();
     }
 }

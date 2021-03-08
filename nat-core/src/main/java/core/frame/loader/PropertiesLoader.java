@@ -88,7 +88,7 @@ public class PropertiesLoader extends AbstractLoader{
 			File dir = new File(path);
             List<File> subFiles = Stream.of(dir.listFiles()).filter((file) -> file.isFile()).collect(Collectors.toList());
             if (!subFiles.isEmpty()) {
-                Optional optional = subFiles.stream().filter((file) -> file.getName().endsWith("properties")).findFirst();
+                Optional optional = subFiles.stream().filter((file) -> file.getName().equalsIgnoreCase("properties.properties")).findFirst();
                 //当前目录下有需要的文件，直接返回
                 if (optional.isPresent()) {
                     logger.debug("找到配置文件：" + ((File) optional.get()).getAbsolutePath());

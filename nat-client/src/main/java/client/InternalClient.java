@@ -12,6 +12,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
@@ -69,6 +70,7 @@ public class InternalClient extends BaseClient {
                                 FrameConstant.FRAME_LEN_INDEX, FrameConstant.FRAME_LEN_LEN))
                                 .addLast(new ByteToPojoDecoder())
                                 .addLast(new PojoToByteEncoder())
+                                .addLast(new IdleStateHandler(0, 0, 1, TimeUnit.MINUTES))
                                 .addLast(new InternalClientHandler());
                     }
                 });

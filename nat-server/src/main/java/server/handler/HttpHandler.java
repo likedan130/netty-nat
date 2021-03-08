@@ -4,8 +4,7 @@ import core.constant.FrameConstant;
 import core.utils.BufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 
@@ -13,28 +12,34 @@ import io.netty.handler.codec.http.HttpHeaders;
  * @function 简易的http报文内容替换，将http请求头中的host信息去除
  * @author wneck130@gmail.com
  */
-public class HttpHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class HttpHandler extends ChannelOutboundHandlerAdapter {
 
     private static final String HTTP_HOST = "Host";
 
+    private static final String HTTP_CONTENT_LENGTH = "Content-Length";
+
+    private static final String HTTP_METHOD = "GET";
+
     /**
-     * 限于现有的转发模式，需要将http请求头中host信息删除才能正确访问
+     * 如果采用http1.0协议发送get请求，请求头中的Content-Length值与实际http包大小不一致，
+     * 会导致异常，Content-Length值偏小则超时，Content-Length值偏大则包内容补全
      * @param ctx
      * @param msg
      * @throws Exception
      */
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        String msgStr = new String(BufUtil.getArray(msg), FrameConstant.DEFAULT_CHARSET);
-        if (msgStr.contains(HTTP_HOST)) {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        String msgStr = new String(BufUtil.getArray((ByteBuf)msg), FrameConstant.DEFAULT_CHARSET);
+        if (msgStr.contains(HTTP_CONTENT_LENGTH)) {
             String httpMsg = msgStr.substring(0,
-                    msgStr.indexOf(HTTP_HOST))
-                    + msgStr.substring(msgStr.indexOf(HTTP_HOST))
-                        .substring(msgStr.substring(msgStr.indexOf(HTTP_HOST)).indexOf("\r\n")
-                    + 2);
+                    msgStr.indexOf(HTTP_CONTENT_LENGTH))
+                    + msgStr.substring(msgStr.indexOf(HTTP_CONTENT_LENGTH))
+                    .substring(msgStr.substring(msgStr.indexOf(HTTP_CONTENT_LENGTH)).indexOf("\r\n")
+                            + 2);
             ByteBuf newMsg = Unpooled.buffer().writeBytes(httpMsg.getBytes(FrameConstant.DEFAULT_CHARSET));
-            ctx.fireChannelRead(newMsg);
-            return;
+            ctx.writeAndFlush(newMsg);
         }
+        ctx.writeAndFlush(msg);
     }
+
 }

@@ -1,10 +1,7 @@
 package client;
 
 import core.cache.PropertiesCache;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
-import io.netty.util.internal.logging.InternalLogger;
-import io.netty.util.internal.logging.InternalLoggerFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;

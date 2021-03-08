@@ -3,9 +3,13 @@ package client.handler;
 import client.group.ClientChannelGroup;
 import client.handler.processor.*;
 import core.entity.Frame;
+import core.enums.CommandEnum;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +17,11 @@ import org.slf4j.LoggerFactory;
  * @Author wneck130@gmail.com
  * @function 业务处理handler，所有协议命令在本类中处理
  */
+@Slf4j
 public class InternalClientHandler extends SimpleChannelInboundHandler<Frame> {
-    private static final Logger logger = LoggerFactory.getLogger(InternalClientHandler.class);
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Frame msg) throws Exception {
+        log.debug("Server数据：" + msg.toString());
         byte cmd = msg.getCmd();
         switch (cmd) {
             //接入命令
@@ -62,7 +67,7 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<Frame> {
                 //internalChannel断开连接，则内部通信已经中断，防止TCP包有拆包，所以直接断开proxyChannel
                 ClientChannelGroup.removeProxyChannel(proxyChannel);
                 ClientChannelGroup.removeInternalChannel(internalChannel);
-                proxyChannel.close();
+                proxyChannel.flush().close();
             }
         }
         ClientChannelGroup.removeIdleInternalChannel(internalChannel);
@@ -76,14 +81,29 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<Frame> {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        Channel channel = ctx.channel();
-        if(!channel.isActive()){
-            logger.debug("############### -- 客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
-            cause.printStackTrace();
-            ctx.close();
-        }else{
-            ctx.fireExceptionCaught(cause);
-            logger.debug("###############",cause);
+        log.error("ClientInternal[{}]发生异常：{}", ctx.channel().id(), cause.getStackTrace());
+        ctx.close();
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param evt
+     * @throws Exception
+     */
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent){
+            IdleStateEvent event = (IdleStateEvent)evt;
+            if (event.state() == IdleState.ALL_IDLE){
+                Frame frame = new Frame();
+                frame.setCmd(CommandEnum.CMD_HEARTBEAT.getCmd());
+                ctx.writeAndFlush(frame).addListener((future -> {
+//                    log.debug("发送心跳保活!!!");
+                }));
+            }
+        }else {
+            super.userEventTriggered(ctx,evt);
         }
     }
 }
