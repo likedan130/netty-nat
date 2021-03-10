@@ -84,26 +84,4 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<Frame> {
         log.error("ClientInternal[{}]发生异常：{}", ctx.channel().id(), cause.getStackTrace());
         ctx.close();
     }
-
-    /**
-     *
-     * @param ctx
-     * @param evt
-     * @throws Exception
-     */
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if (evt instanceof IdleStateEvent){
-            IdleStateEvent event = (IdleStateEvent)evt;
-            if (event.state() == IdleState.ALL_IDLE){
-                Frame frame = new Frame();
-                frame.setCmd(CommandEnum.CMD_HEARTBEAT.getCmd());
-                ctx.writeAndFlush(frame).addListener((future -> {
-//                    log.debug("发送心跳保活!!!");
-                }));
-            }
-        }else {
-            super.userEventTriggered(ctx,evt);
-        }
-    }
 }

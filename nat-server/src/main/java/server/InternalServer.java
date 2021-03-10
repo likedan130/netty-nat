@@ -10,11 +10,15 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 import server.decoder.ByteToPojoDecoder;
 import server.decoder.PojoToByteEncoder;
 import server.group.ServerChannelGroup;
+import server.handler.CustomEventHandler;
 import server.handler.InternalServerHandler;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author wneck130@gmail.com
@@ -22,6 +26,11 @@ import server.handler.InternalServerHandler;
  */
 @Slf4j
 public class InternalServer extends BaseServer {
+
+    /**
+     * 心跳超时时间，默认为2倍心跳发送间隔，心跳超时后服务主动回收连接
+     */
+    private static long HEARTBEAT_TIMEOUT = 2 * 1L;
 
     /**
      * 代理程序对外开发的端口
@@ -45,6 +54,8 @@ public class InternalServer extends BaseServer {
                         FrameConstant.FRAME_LEN_INDEX, FrameConstant.FRAME_LEN_LEN))
                         .addLast(new ByteToPojoDecoder())
                         .addLast(new PojoToByteEncoder())
+                        .addLast(new IdleStateHandler(0, 0, HEARTBEAT_TIMEOUT, TimeUnit.MINUTES))
+                        .addLast(new CustomEventHandler())
                         .addLast(new InternalServerHandler());
             }
         };

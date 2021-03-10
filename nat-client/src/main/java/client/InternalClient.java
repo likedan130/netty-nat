@@ -3,6 +3,7 @@ package client;
 import client.decoder.ByteToPojoDecoder;
 import client.decoder.PojoToByteEncoder;
 import client.group.ClientChannelGroup;
+import client.handler.CustomEventHandler;
 import client.handler.InternalClientHandler;
 import core.cache.PropertiesCache;
 import core.constant.FrameConstant;
@@ -44,6 +45,11 @@ public class InternalClient extends BaseClient {
      */
     private static String INIT_NUM = "internal.channel.init.num";
 
+    /**
+     * 心跳间隔，默认为1分钟
+     */
+    private static long HEARTBEAT_INTERVAL = 1L;
+
     public static Bootstrap client = new Bootstrap();
 
     public static int initNum;
@@ -70,7 +76,8 @@ public class InternalClient extends BaseClient {
                                 FrameConstant.FRAME_LEN_INDEX, FrameConstant.FRAME_LEN_LEN))
                                 .addLast(new ByteToPojoDecoder())
                                 .addLast(new PojoToByteEncoder())
-                                .addLast(new IdleStateHandler(0, 0, 1, TimeUnit.MINUTES))
+                                .addLast(new IdleStateHandler(0, 0, HEARTBEAT_INTERVAL, TimeUnit.MINUTES))
+                                .addLast(new CustomEventHandler())
                                 .addLast(new InternalClientHandler());
                     }
                 });
