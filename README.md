@@ -11,7 +11,7 @@
 
 ## 工具原理说明
 1. [通信协议](代理程序通信协议.docx)
-2. ![程序运行时序图](netty-nat时序图.png)
+2. ![程序运行时序图](https://github.com/likedan130/netty-nat/blob/master/netty-nat%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
     
 ## 使用方式
 1. **将项目克隆到本地**  
