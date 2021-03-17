@@ -10,7 +10,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelId;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
 
 /**
  * @Author wneck130@gmail.com
@@ -27,26 +30,36 @@ public class DataTransferProcessor implements Processor {
             Channel proxyChannel = ClientChannelGroup.getProxyByInternal(internalChannel.id());
             if (proxyChannel == null) {
                 log.error("配对关系异常：[InternalChannel：{}, ProxyChannel：null]", internalChannel);
-                throw new Exception("配对关系异常：[InternalChannel："+internalChannel+", ProxyChannel：null]");
+//                throw new Exception("配对关系异常：[InternalChannel："+internalChannel+", ProxyChannel：null]");
+                proxyChannel = ClientChannelGroup.connectToProxy(ctx).channel();
+                log.debug("Requestor数据：" + msg.toString() +
+                                "\n Server>>[{}]>>ClientInternal--[{}]--ClientProxy--[{}]--Responsor"
+                        , internalChannel.id(), proxyChannel.id());
+                ByteBuf response = Unpooled.buffer();
+                response.writeBytes((byte[])msg.getData().get("data"));
+                final ChannelId channelId = proxyChannel.id();
+                proxyChannel.writeAndFlush(response).addListener((future -> {
+                    if (future.isSuccess()) {
+                        log.debug("Requestor数据：" + msg.toString() +
+                                        "\n Server--[{}]--ClientInternal--[{}]--ClientProxy>>[{}]>>Responsor"
+                                , internalChannel.id(), channelId);
+                    }
+                }));
             }
             log.debug("Requestor数据：" + msg.toString() +
                             "\n Server>>[{}]>>ClientInternal--[{}]--ClientProxy--[{}]--Responsor"
                     , internalChannel.id(), proxyChannel.id());
             ByteBuf response = Unpooled.buffer();
             response.writeBytes((byte[])msg.getData().get("data"));
+            final ChannelId channelId = proxyChannel.id();
             proxyChannel.writeAndFlush(response).addListener((future -> {
                 if (future.isSuccess()) {
                     log.debug("Requestor数据：" + msg.toString() +
                             "\n Server--[{}]--ClientInternal--[{}]--ClientProxy>>[{}]>>Responsor"
-                            , internalChannel.id(), proxyChannel.id());
+                            , internalChannel.id(), channelId);
                 }
             }));
         } else {
-            //proxy连接可能已经被主动断开，忽略本条消息
-//            log.debug("Requestor数据发送失败：" + msg.toString() +
-//                            "\n Server--[{}]--ClientInternal--[{}]--ClientProxy--XX--Responsor"
-//                    , internalChannel.id());
-//            return;
             //增加可靠性，proxy连接不存在时，重新建立配对并发送消息
             ProxyClient proxyClient = new ProxyClient();
             try {

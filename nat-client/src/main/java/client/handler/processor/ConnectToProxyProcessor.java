@@ -19,22 +19,6 @@ public class ConnectToProxyProcessor implements Processor {
     @Override
     public void process(ChannelHandlerContext ctx, Frame msg) {
         //收到服务器的命令后主动建立与被代理服务之间的连接
-        ProxyClient proxyClient = new ProxyClient();
-        try {
-            //启动代理服务
-            proxyClient.init();
-            Channel internalChannel = ctx.channel();
-            ChannelFuture future = proxyClient.start();
-            future.get();
-            if (future.isSuccess()) {
-                ClientChannelGroup.addChannelPair(internalChannel, future.channel());
-                log.debug("建立连接: ClientInternal--[{}]--ClientProxy--[{}]--Responsor", internalChannel.id(), future.channel().id());
-                ClientChannelGroup.removeIdleInternalChannel(internalChannel);
-                ClientChannelGroup.addInternalChannel(internalChannel);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            ctx.close();
-        }
+        ClientChannelGroup.connectToProxy(ctx);
     }
 }

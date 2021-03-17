@@ -2,8 +2,11 @@ package client.group;
 
 import client.BaseClient;
 import client.InternalClient;
+import client.ProxyClient;
 import core.cache.PropertiesCache;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -16,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +30,8 @@ import java.util.stream.Collectors;
 public class ClientChannelGroup {
 
    private static PropertiesCache cache = PropertiesCache.getInstance();
+
+   private static Long CONNECT_PROXY_TIMEOUT = 3L;
 
     /**
      * channel对，将服务端与客户端的channel进行配对，便于消息转发
@@ -179,5 +185,26 @@ public class ClientChannelGroup {
         ClientChannelGroup.getChannelPair().entrySet().stream().forEach((entry) -> {
             log.debug("[InternalChannel：" + entry.getKey()+", ProxyChannel："+entry.getValue()+"]");
         });
+    }
+
+    /**
+     * 统一创建与被代理服务间通信的方法，阻塞直到连接建立完成
+     * @param ctx
+     */
+    public static ChannelFuture connectToProxy(ChannelHandlerContext ctx) throws Exception {
+        //收到服务器的命令后主动建立与被代理服务之间的连接
+        ProxyClient proxyClient = new ProxyClient();
+        //启动代理服务
+        proxyClient.init();
+        Channel internalChannel = ctx.channel();
+        ChannelFuture future = proxyClient.start();
+        future.get(CONNECT_PROXY_TIMEOUT, TimeUnit.SECONDS);
+        if (future.isSuccess()) {
+            ClientChannelGroup.addChannelPair(internalChannel, future.channel());
+            log.debug("建立连接: ClientInternal--[{}]--ClientProxy--[{}]--Responsor", internalChannel.id(), future.channel().id());
+            ClientChannelGroup.removeIdleInternalChannel(internalChannel);
+            ClientChannelGroup.addInternalChannel(internalChannel);
+        }
+        return future;
     }
 }
