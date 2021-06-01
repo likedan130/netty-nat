@@ -14,6 +14,8 @@ import server.group.ServerChannelGroup;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author wneck130@gmail.com
@@ -53,7 +55,14 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                                 + "\nRequestor--[{}]--ServerProxy--XX--ServerInternal--[{}]--Client",
                                 ctx.channel().id(), internalChannel.id());
                         //断开代理服务连接，重新建立channel配对并对外提供服务
-                        ctx.channel().close();
+                        ctx.close();
+                    } else {
+                        ScheduledFuture scheduledFuture = ctx.channel().eventLoop()
+                                .schedule(() -> {
+                                    log.error("ProxyChannel["+ctx.channel().id()+"]超时未响应，关闭连接!!!");
+                                    ctx.close();
+                                    }, 5, TimeUnit.SECONDS);
+                        ServerChannelGroup.addFuture(ctx.channel().id(), scheduledFuture);
                     }
                 });
             }else {

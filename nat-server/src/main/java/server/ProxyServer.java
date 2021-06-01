@@ -8,11 +8,14 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 import server.group.ServerChannelGroup;
 import server.handler.ConverterHandler;
 import server.handler.HttpHandler;
 import server.handler.ProxyServerHandler;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author wneck130@gmail.com
@@ -44,6 +47,7 @@ public class ProxyServer extends BaseServer {
             protected void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline().addLast("converter", new ConverterHandler())
 //                        .addLast("http", new HttpHandler())
+                        .addLast(new IdleStateHandler(0, 0, 5, TimeUnit.MINUTES))
                         .addLast(new ProxyServerHandler());
             }
         };

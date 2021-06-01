@@ -40,13 +40,12 @@ public class InternalClientHandler extends SimpleChannelInboundHandler<Frame> {
             case 0x04:
                 new ChannelRecycleProcessor().process(ctx, msg);
                 break;
-            case 0x05:
-                new ConnectToProxyProcessor().process(ctx, msg);
-                break;
             //消息转发
             case (byte)0xff:
                 new DataTransferProcessor().process(ctx, msg);
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + cmd);
         }
     }
 

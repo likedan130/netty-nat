@@ -37,13 +37,13 @@ public class ProxyClient extends BaseClient {
         client.group(group)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<NioSocketChannel>() {
-            @Override
-            protected void initChannel(NioSocketChannel ch) {
-                //加入自定义的handler
-                ch.pipeline()
-                        .addLast(new ProxyClientHandler());
-            }
-        });
+                    @Override
+                    protected void initChannel(NioSocketChannel ch) {
+                        //加入自定义的handler
+                        ch.pipeline()
+                                .addLast(new ProxyClientHandler());
+                    }
+                });
         return client.connect(cache.get(HOST), cache.getInt(PORT));
     }
 

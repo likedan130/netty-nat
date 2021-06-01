@@ -4,7 +4,6 @@ import client.ProxyClient;
 import client.group.ClientChannelGroup;
 import core.entity.Frame;
 import core.processor.Processor;
-import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -12,8 +11,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 /**
  * @Author wneck130@gmail.com
@@ -36,7 +33,7 @@ public class DataTransferProcessor implements Processor {
                                 "\n Server>>[{}]>>ClientInternal--[{}]--ClientProxy--[{}]--Responsor"
                         , internalChannel.id(), proxyChannel.id());
                 ByteBuf response = Unpooled.buffer();
-                response.writeBytes((byte[])msg.getData().get("data"));
+                response.writeBytes((byte[]) msg.getData().get("data"));
                 final ChannelId channelId = proxyChannel.id();
                 proxyChannel.writeAndFlush(response).addListener((future -> {
                     if (future.isSuccess()) {
@@ -50,12 +47,12 @@ public class DataTransferProcessor implements Processor {
                             "\n Server>>[{}]>>ClientInternal--[{}]--ClientProxy--[{}]--Responsor"
                     , internalChannel.id(), proxyChannel.id());
             ByteBuf response = Unpooled.buffer();
-            response.writeBytes((byte[])msg.getData().get("data"));
+            response.writeBytes((byte[]) msg.getData().get("data"));
             final ChannelId channelId = proxyChannel.id();
             proxyChannel.writeAndFlush(response).addListener((future -> {
                 if (future.isSuccess()) {
                     log.debug("Requestor数据：" + msg.toString() +
-                            "\n Server--[{}]--ClientInternal--[{}]--ClientProxy>>[{}]>>Responsor"
+                                    "\n Server--[{}]--ClientInternal--[{}]--ClientProxy>>[{}]>>Responsor"
                             , internalChannel.id(), channelId);
                 }
             }));
@@ -74,7 +71,7 @@ public class DataTransferProcessor implements Processor {
                     ClientChannelGroup.addInternalChannel(internalChannel);
                     Channel proxyChannel = future.channel();
                     ByteBuf response = Unpooled.buffer();
-                    response.writeBytes((byte[])msg.getData().get("data"));
+                    response.writeBytes((byte[]) msg.getData().get("data"));
                     proxyChannel.writeAndFlush(response).addListener((sendFuture -> {
                         if (sendFuture.isSuccess()) {
                             log.debug("Requestor数据：" + msg.toString() +

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +61,13 @@ public class ServerChannelGroup {
      * key为InternalServer中channel的channelId，value为ProxyServer中channel的channelId
      */
     private static Map<ChannelId, ChannelId> channelPair = new ConcurrentHashMap<>();
+
+
+    /**
+     * proxyChannel每次发送数据都会期待在timeout时间内收到响应，如果超时则认为连接异常，断开proxyChannel重新服务
+     * ScheduledFuture为当前channel对应eventloop中的一个定义关闭任务，超时后关闭连接
+     */
+    private static Map<ChannelId, ScheduledFuture> futureMap = new ConcurrentHashMap<>();
 
     /**
      * 被代理服务的channel组
@@ -292,5 +300,31 @@ public class ServerChannelGroup {
                 + "当前channelPair：\r\n");
         ServerChannelGroup.getchannelPair()
                 .forEach((key, value) -> log.debug("[InternalChannel：" + key + ", ProxyChannel：" + value + "]\r\n"));
+    }
+
+    /**
+     * 存储超时关闭的定时任务，如果已经存在任务，则cancel新任务，保持原任务不变
+     * @param channelId
+     * @param future
+     */
+    public static void addFuture(ChannelId channelId, ScheduledFuture future) {
+        try {
+            ScheduledFuture successOne = futureMap.putIfAbsent(channelId, future);
+            if (!Objects.equals(successOne, future)) {
+                future.cancel(true);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("超时关闭proxyChannel异常!!!", e);
+        }
+    }
+
+    public static void cancelFuture(ChannelId channelId) {
+        try {
+            futureMap.get(channelId).cancel(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("关闭ScheduledFuture任务异常!!!", e);
+        }
     }
 }

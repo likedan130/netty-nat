@@ -15,7 +15,7 @@ public class CustomEventHandler extends ChannelInboundHandlerAdapter {
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         //监测到连接空闲，则断开连接
         if (evt instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent)evt;
+            IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.ALL_IDLE) {
                 ctx.close();
             }

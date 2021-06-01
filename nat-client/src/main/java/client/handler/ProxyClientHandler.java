@@ -31,7 +31,7 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
         //获取内部客户端
         if (ClientChannelGroup.channelPairExist(ctx.channel().id())) {
             Channel internalChannel = ClientChannelGroup.getInternalByProxy(ctx.channel().id());
-            log.debug("Responsor数据："+ ByteUtil.toHexString(message)
+            log.debug("Responsor数据：" + ByteUtil.toHexString(message)
                             + "\n Server--[{}]--ClientInternal----ClientProxy<<[{}]<<Responsor"
                     , internalChannel.id(), ctx.channel().id());
             //判断是否已经建立配对关系
@@ -45,7 +45,7 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     frame.setData(map);
                     internalChannel.writeAndFlush(frame).addListener((ChannelFutureListener) future -> {
                         if (future.isSuccess()) {
-                            log.debug("Responsor数据："+ ByteUtil.toHexString(message)
+                            log.debug("Responsor数据：" + ByteUtil.toHexString(message)
                                             + "\n Server<<[{}]<<ClientInternal----ClientProxy--[{}]--Responsor"
                                     , internalChannel.id(), ctx.channel().id());
                         }
@@ -66,25 +66,26 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
         Channel proxyChannel = ctx.channel();
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-        log.debug("proxyChannel："+ proxyChannel.id() + " 断开连接!!!");
+        log.debug("proxyChannel：" + proxyChannel.id() + " 断开连接!!!");
         if (ClientChannelGroup.channelPairExist(proxyChannel.id())) {
             ClientChannelGroup.printGroupState();
             Channel internalChannel = ClientChannelGroup.getInternalByProxy(proxyChannel.id());
             ClientChannelGroup.removeProxyChannel(proxyChannel);
-            if (internalChannel ==  null) {
-                log.error("与proxyChannel:"+proxyChannel.id()+"配对的internalChannel为null");
+            if (internalChannel == null) {
+                log.error("与proxyChannel:" + proxyChannel.id() + "配对的internalChannel为null");
                 return;
             }
             ClientChannelGroup.removeChannelPair(internalChannel.id(), proxyChannel.id());
             ClientChannelGroup.releaseInternalChannel(internalChannel);
         } else {
-            log.error("proxyChannel："+ proxyChannel.id() + " 未找到配对关系!!!");
+            log.error("proxyChannel：" + proxyChannel.id() + " 未找到配对关系!!!");
             ClientChannelGroup.printGroupState();
         }
     }
 
     /**
      * 通道异常触发
+     *
      * @param ctx
      * @param cause
      * @throws Exception
@@ -92,13 +93,13 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
-        if(!channel.isActive()){
-            log.debug("被代理客户端 -- "+ channel.remoteAddress()+ "  断开了连接！");
+        if (!channel.isActive()) {
+            log.debug("被代理客户端 -- " + channel.remoteAddress() + "  断开了连接！");
             cause.printStackTrace();
             ctx.close();
-        }else{
+        } else {
             ctx.fireExceptionCaught(cause);
-            log.debug("channel异常：",cause);
+            log.debug("channel异常：", cause);
         }
     }
 }

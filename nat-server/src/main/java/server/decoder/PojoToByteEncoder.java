@@ -1,17 +1,10 @@
 package server.decoder;
 
 import core.entity.Frame;
-import core.enums.CommandEnum;
-import core.utils.BufUtil;
-import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 
 /**
  * @author wneck130@gmail.com
@@ -28,8 +21,8 @@ public class PojoToByteEncoder extends MessageToByteEncoder<Frame> {
         if (msg.getData() == null || msg.getData().get("data") == null) {
             out.writeInt(0);
         } else {
-            out.writeInt(((byte[])msg.getData().get("data")).length);
-            out.writeBytes(((byte[])msg.getData().get("data")));
+            out.writeInt(((byte[]) msg.getData().get("data")).length);
+            out.writeBytes(((byte[]) msg.getData().get("data")));
         }
     }
 }

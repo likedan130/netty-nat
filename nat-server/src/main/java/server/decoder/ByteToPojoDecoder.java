@@ -8,8 +8,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,7 @@ public class ByteToPojoDecoder extends ByteToMessageDecoder {
                     break;
                 case 0x04:
                     break;
-                case (byte)0xFF:
+                case (byte) 0xFF:
                     byte[] dataBytes = new byte[len];
                     in.readBytes(dataBytes);
                     Map<String, Object> data = new HashMap<>();

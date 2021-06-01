@@ -1,13 +1,9 @@
 package server.handler;
 
 import core.entity.Frame;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import server.ProxyServer;
 import server.group.ServerChannelGroup;
 import server.handler.processor.*;
@@ -18,46 +14,9 @@ import server.handler.processor.*;
  */
 @Slf4j
 public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Frame msg) throws Exception {
-        byte cmd = msg.getCmd();
-        switch (cmd) {
-            //接入命令
-            case 0x01:
-                new LoginProcessor().process(ctx, msg);
-                break;
-            //心跳命令
-            case 0x02:
-                new HeartbeatProcessor().process(ctx, msg);
-                break;
-            //连接池扩容
-            case 0x03:
-                new ConnectionExpandProcessor().process(ctx, msg);
-                break;
-            //连接池回收
-            case 0x04:
-                new ConnectionReduceProcessor().process(ctx, msg);
-                break;
-            //消息转发
-            case (byte)0xff:
-                new DataTransferProcessor().process(ctx, msg);
-                break;
-        }
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        //当第一条可用的internalChannel建立时，启动proxyServer开始提供代理服务
-        if (ServerChannelGroup.idleInternalGroupIsEmpty()) {
-            startProxyServer(ctx);
-        } else {
-            ServerChannelGroup.addIdleInternalChannel(ctx.channel());
-        }
-        log.debug("建立连接：ServerInternal--[{}]--ClientInternal", ctx.channel().id());
-    }
-
     /**
      * 启动代理服务端暂时使用锁保证一次
+     *
      * @param ctx
      */
     static synchronized void startProxyServer(ChannelHandlerContext ctx) {
@@ -79,6 +38,46 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
     }
 
     @Override
+    protected void channelRead0(ChannelHandlerContext ctx, Frame msg) throws Exception {
+        byte cmd = msg.getCmd();
+        switch (cmd) {
+            //接入命令
+            case 0x01:
+                new LoginProcessor().process(ctx, msg);
+                break;
+            //心跳命令
+            case 0x02:
+                new HeartbeatProcessor().process(ctx, msg);
+                break;
+            //连接池扩容
+            case 0x03:
+                new ConnectionExpandProcessor().process(ctx, msg);
+                break;
+            //连接池回收
+            case 0x04:
+                new ConnectionReduceProcessor().process(ctx, msg);
+                break;
+            //消息转发
+            case (byte) 0xff:
+                new DataTransferProcessor().process(ctx, msg);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + cmd);
+        }
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        //当第一条可用的internalChannel建立时，启动proxyServer开始提供代理服务
+        if (ServerChannelGroup.idleInternalGroupIsEmpty()) {
+            startProxyServer(ctx);
+        } else {
+            ServerChannelGroup.addIdleInternalChannel(ctx.channel());
+        }
+        log.debug("建立连接：ServerInternal--[{}]--ClientInternal", ctx.channel().id());
+    }
+
+    @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         //普通internalChannel断开连接，则回收idleInternalGroup和internalGroup中的连接，等待客户端重新发起连接补足连接数
         ServerChannelGroup.removeIdleInternalChannel(ctx.channel());
@@ -87,6 +86,7 @@ public class InternalServerHandler extends SimpleChannelInboundHandler<Frame> {
 
     /**
      * 通道异常触发
+     *
      * @param ctx
      * @param cause
      * @throws Exception

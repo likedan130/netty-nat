@@ -46,14 +46,14 @@ public class ByteToPojoDecoder extends ByteToMessageDecoder {
                 case 0x01:
                     break;
                 case 0x02:
-                    log.debug("InternalClient:"+ctx.channel().id()+"收到心跳指令");
+                    log.debug("InternalClient:" + ctx.channel().id() + "收到心跳指令");
                     break;
                 case 0x03:
-                    log.debug("InternalClient:"+ctx.channel().id()+"收到建立代理连接指令");
+                    log.debug("InternalClient:" + ctx.channel().id() + "收到建立代理连接指令");
                     break;
                 case 0x04:
                     break;
-                case (byte)0xFF:
+                case (byte) 0xFF:
                     byte[] dataBytes = new byte[len];
                     in.readBytes(dataBytes);
                     Map<String, Object> data = new HashMap<>();

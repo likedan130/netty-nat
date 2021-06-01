@@ -20,6 +20,7 @@ public class ConverterHandler extends SimpleChannelInboundHandler<ByteBuf> {
      * 如果是http/https请求，将请求头中的host信息去除
      * 如果是tcp自定义报文，则将本handler和httpHandler移除
      * HTTP请求由请求行、请求头、请求体构成，每个部分由换行符分隔，同一部分内部使用空格分隔，请求行内容为请求方法，URI，协议版本
+     *
      * @param ctx
      * @param msg
      * @throws Exception
@@ -30,7 +31,7 @@ public class ConverterHandler extends SimpleChannelInboundHandler<ByteBuf> {
             String msgStr = new String(BufUtil.getArray(msg), FrameConstant.DEFAULT_CHARSET);
             String headeLine = msgStr.split("\\n")[0];
             //判断是否为https的connect请求，处理浏览器的代理连接请求
-            if (headeLine.substring(0, headeLine.indexOf(" ")+1).equalsIgnoreCase(HttpMethod.CONNECT.name())) {
+            if (headeLine.substring(0, headeLine.indexOf(" ") + 1).equalsIgnoreCase(HttpMethod.CONNECT.name())) {
                 ByteBuf buffer = ctx.channel().alloc().buffer("HTTP/1.1 200 Connection Established\r\n\r\n".getBytes().length);
                 buffer.writeBytes("HTTP/1.1 200 Connection Established\r\n\r\n".getBytes());
                 ctx.channel().writeAndFlush(buffer);

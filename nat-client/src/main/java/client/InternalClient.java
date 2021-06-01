@@ -29,42 +29,43 @@ public class InternalClient extends BaseClient {
      * 连接延时，防止过多消耗系统资源
      */
     public static int CONNECTION_DELAY = 1;
-
+    public static Bootstrap client = new Bootstrap();
+    public static int initNum;
+    /**
+     * 客户端重连、扩展标志位，正在连接中时，对外部的连接建立命令静默
+     */
+    public static boolean connectingFlag = false;
     /**
      * 代理程序内部通信使用的地址
      */
     private static String HOST = "internal.server.host";
-
     /**
      * 代理程序内部通信使用的端口
      */
     private static String PORT = "internal.server.port";
-
     /**
      * 代理程序内部连接的初始化数量
      */
     private static String INIT_NUM = "internal.channel.init.num";
-
     /**
      * 心跳间隔，默认为1分钟
      */
     private static long HEARTBEAT_INTERVAL = 1L;
 
-    public static Bootstrap client = new Bootstrap();
-
-    public static int initNum;
-
-    /**
-     * 客户端重连、扩展标志位，正在连接中时，对外部的连接建立命令静默
-     */
-    public static boolean connectingFlag = false;
-
     public static boolean isChanging() {
         return connectingFlag;
     }
 
-    public void init() throws Exception{
+    public static void main(String[] args) throws Exception {
+        InternalClient internalClient = new InternalClient();
+        internalClient.init();
+        internalClient.start();
+        ClientChannelGroup.printGroupState();
+    }
+
+    public void init() throws Exception {
         new PropertiesLoader().load(System.getProperty("user.dir"));
+//        new PropertiesLoader().load("E:\\songwei\\workspace\\netty-nat\\nat-client");
         group = new NioEventLoopGroup();
         //定义线程组，处理读写和链接事件
         client.group(group)
@@ -85,6 +86,7 @@ public class InternalClient extends BaseClient {
 
     /**
      * 启动内部连接
+     *
      * @throws Exception
      */
     public void start() {
@@ -93,10 +95,10 @@ public class InternalClient extends BaseClient {
         connect(initNum);
     }
 
-
     /**
      * 启动指定数量的内部的连接
      * 建立连接失败时，按照简单的延迟重连机制进行重连
+     *
      * @throws Exception
      */
     public void connect(Integer num) {
@@ -127,13 +129,5 @@ public class InternalClient extends BaseClient {
             connectingFlag = false;
         }
 
-    }
-
-
-    public static void main(String[] args) throws Exception{
-        InternalClient internalClient = new InternalClient();
-        internalClient.init();
-        internalClient.start();
-        ClientChannelGroup.printGroupState();
     }
 }

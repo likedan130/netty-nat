@@ -32,6 +32,7 @@ public class DataTransferProcessor implements Processor {
                 log.error("配对关系异常：[InternalChannel：{}, ProxyChannel：null]", internalChannel);
                 throw new Exception("配对关系异常：[InternalChannel："+internalChannel+", ProxyChannel：null]");
             }
+            ServerChannelGroup.cancelFuture(proxyChannel.id());
             log.debug("Responsor数据：" + msg.toString() +
                             "\n Requestor--[{}]--ServerProxy----ServerInternal<<[{}]<<Client",
                     proxyChannel.id(), internalChannel.id());
