@@ -13,6 +13,8 @@
 1. [通信协议](代理程序通信协议.docx)
 -----
 2. 程序运行时序图![image](https://github.com/likedan130/netty-nat/blob/master/netty-nat%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
+-----
+3. 网络拓扑图![image](https://github.com/likedan130/netty-nat/blob/master/netty-nat%E7%BD%91%E8%B7%AF%E6%8B%93%E6%89%91%E5%9B%BE.png)
     
 ## 使用方式
 1. **将项目克隆到本地**  
