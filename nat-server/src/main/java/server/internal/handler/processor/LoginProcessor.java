@@ -5,6 +5,7 @@ import core.entity.Frame;
 import core.entity.Tunnel;
 import core.netty.group.ServerChannelGroup;
 import core.netty.handler.processor.Processor;
+import core.properties.cache.PropertiesCache;
 import core.utils.BufUtil;
 import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
@@ -27,7 +28,7 @@ public class LoginProcessor implements Processor {
 
     private final String DATA_KEY_TUNNELS = "tunnels";
 
-    private final String DEFAULT_PASSWORD = "123456";
+    private final String DEFAULT_PASSWORD = PropertiesCache.getInstance().get("password");
 
     /**
      * login数据帧处理

@@ -1,7 +1,0 @@
-internal.server.port=8080
-internal.server.host=47.92.215.60
-proxy.client.port=80
-proxy.client.host=127.0.0.1
-internal.channel.init.num=100
-internal.channel.max.idle.num=100
-internal.channel.min.idle.num=5

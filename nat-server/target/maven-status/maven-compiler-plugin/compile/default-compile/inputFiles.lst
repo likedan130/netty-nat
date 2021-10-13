@@ -3,10 +3,8 @@ E:\workspace\netty-nat\nat-server\src\main\java\server\internal\handler\processo
 E:\workspace\netty-nat\nat-server\src\main\java\server\internal\handler\processor\HeartbeatProcessor.java
 E:\workspace\netty-nat\nat-server\src\main\java\server\internal\InternalNettyServer.java
 E:\workspace\netty-nat\nat-server\src\main\java\server\proxy\handler\TcpInLogHandler.java
-E:\workspace\netty-nat\nat-server\src\main\java\server\internal\handler\HttpHandler.java
 E:\workspace\netty-nat\nat-server\src\main\java\server\internal\handler\processor\LoginProcessor.java
 E:\workspace\netty-nat\nat-server\src\main\java\server\proxy\ProxyNettyServer.java
-E:\workspace\netty-nat\nat-server\src\main\java\server\internal\handler\ConverterHandler.java
 E:\workspace\netty-nat\nat-server\src\main\java\server\internal\handler\CustomEventHandler.java
 E:\workspace\netty-nat\nat-server\src\main\java\server\proxy\handler\TcpProxyServerHandler.java
 E:\workspace\netty-nat\nat-server\src\main\java\server\internal\decoder\PojoToByteEncoder.java

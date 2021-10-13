@@ -1,7 +1,6 @@
 server\internal\handler\CustomEventHandler.class
 server\internal\handler\processor\PreConnectProcessor.class
 server\internal\InternalNettyServer$1.class
-server\internal\handler\HttpHandler.class
 server\internal\handler\InternalServerHandler.class
 server\internal\handler\processor\constant\ProcessorEnum.class
 server\proxy\handler\TcpOutLogHandler.class
@@ -16,5 +15,4 @@ server\proxy\handler\TcpInLogHandler.class
 server\internal\decoder\PojoToByteEncoder.class
 server\internal\decoder\ByteToPojoDecoder.class
 server\internal\handler\processor\DownStreamProcessor.class
-server\internal\handler\ConverterHandler.class
 server\internal\handler\processor\UpStreamProcessor.class

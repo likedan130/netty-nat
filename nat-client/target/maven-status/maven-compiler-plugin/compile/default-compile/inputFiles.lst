@@ -6,15 +6,12 @@ E:\workspace\netty-nat\nat-client\src\main\java\client\internal\handler\processo
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\handler\processor\ChannelRecycleProcessor.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\handler\processor\ConnectionExpandProcessor.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\handler\processor\PreConnectProcessor.java
-E:\workspace\netty-nat\nat-client\src\main\java\client\ProxyClient.java
-E:\workspace\netty-nat\nat-client\src\main\java\client\BaseClient.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\handler\processor\DownStreamProcessor.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\proxy\handler\TcpInLogHandler.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\decoder\PojoToByteEncoder.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\handler\processor\ConnectionReduceProcessor.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\handler\processor\UpStreamProcessor.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\proxy\ProxyNettyClient.java
-E:\workspace\netty-nat\nat-client\src\main\java\client\InternalClient.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\handler\processor\HeartbeatProcessor.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\decoder\ByteToPojoDecoder.java
 E:\workspace\netty-nat\nat-client\src\main\java\client\internal\InternalNettyClient.java

@@ -2,3 +2,4 @@
 internal:
   server:
     port: 8083
+password: '123456'
