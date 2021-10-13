@@ -25,6 +25,7 @@
     &nbsp;|----properties.yml  
     &nbsp;|--netty-server  
     &nbsp;|----properties.yml  
+    
     - client对应properties配置:  
     
       ```yaml
@@ -60,13 +61,15 @@
       internal:
         server:
           port: 8083
+      #接入请求的接入密码
+      password: '123456'
       ```
 3. **打包**  
     项目中使用maven管理第三方依赖，打包使用maven-jar-plugin，自定义打包行为定义在项目根目录的assembly.xml中，打包时执行：  
     ```mvn clean package -Dmaven.test.skip=ture```
 4. **部署**  
  项目打包后获得  项目名称-版本号.zip  
- 解压后获得  
+     解压后获得  
     
     - 项目主运行jar  项目名称-版本号.jar  
     - 项目第三方包依赖目录  libs  
