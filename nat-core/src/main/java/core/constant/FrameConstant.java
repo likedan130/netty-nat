@@ -4,11 +4,16 @@ public class FrameConstant {
     /**
      * 协议头
      */
-    public static byte pv = (byte)0xAA;
+    public static byte REQ_PV = (byte)0x00;
+    public static byte RES_PV = (byte)0x01;
 
-    public static byte CMD_LOGIN = 0x01;
+    public static byte CMD_LOGIN = (byte)0x01;
+
+    public static byte CMD_PRE_CONNECT = (byte)0x03;
 
     public static byte CMD_DATA_TRANSFER = (byte)0xFF;
+
+    public static String DEFAULT_CHANNEL_ID = "FFFFFFFF";
 
     /**
      * 通用成功响应
@@ -23,7 +28,7 @@ public class FrameConstant {
     /**
      * 数据帧命令字所在位置，起始位置为0
      */
-    public static int FRAME_CMD_INDEX = 9;
+    public static int FRAME_CMD_INDEX = 25;
 
     /**
      * 协议序号长度
@@ -33,7 +38,7 @@ public class FrameConstant {
     /**
      * 数据帧长度参数所在位置
      */
-    public static int FRAME_LEN_INDEX = 10;
+    public static int FRAME_LEN_INDEX = 26;
 
     /**
      * 数据帧长度参数的长度
@@ -101,9 +106,19 @@ public class FrameConstant {
     public static int TCP_SO_BACKLOG = 1024;
 
     /**
+     * 内部通信channel阻止系统使用negale算法进行TCP并包发送
+     */
+    public static boolean TCP_NODELAY = true;
+
+    /**
      * TCP重连尝试次数
      */
     public static int TCP_CONNECTION_RETRY_NUM = 10;
+
+    /**
+     * 当端口处于TIME_WAIT时是否允许其他程序监听该端口，用于服务重启
+     */
+    public static boolean TCP_REUSE_ADDR = true;
 
     /**
      * TCP重连尝试间隔扩大倍数

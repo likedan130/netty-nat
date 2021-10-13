@@ -66,7 +66,7 @@
                             <!--<transformers>-->
                                 <!--<transformer-->
                                         <!--implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
-                                    <!--<mainClass>server.InternalServer</mainClass>-->
+                                    <!--<mainClass>server.internal.InternalServer</mainClass>-->
                                 <!--</transformer>-->
                             <!--</transformers>-->
                         <!--</configuration>-->
@@ -108,7 +108,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
-                            <mainClass>server.InternalServer</mainClass>
+                            <mainClass>server.internal.InternalNettyServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

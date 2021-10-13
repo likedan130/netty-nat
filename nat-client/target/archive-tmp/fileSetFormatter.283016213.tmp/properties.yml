@@ -1,0 +1,15 @@
+internal:
+  channel:
+    init:
+      num: 1
+  server:
+    host: 127.0.0.1
+    port: 8082
+tunnel:
+  - serverPort: 9000
+    clientPort: 3306
+    clientHost: 127.0.0.1
+  - serverPort: 9001
+    clientPort: 8848
+    clientHost: 127.0.0.1
+password: '123456'

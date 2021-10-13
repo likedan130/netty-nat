@@ -17,7 +17,7 @@
     <properties>
         <netty-version>4.1.49.Final</netty-version>
         <jackson-version>2.11.0</jackson-version>
-        <lombok-version>1.16.18</lombok-version>
+        <lombok-version>1.18.20</lombok-version>
         <sjf4j-api-version>1.7.21</sjf4j-api-version>
     </properties>
 

@@ -1,0 +1,23 @@
+#内部连接池大小，内部连接只需转发外部与被代理服务间业务数据，可重用通道
+internal:
+  channel:
+    init:
+      num: 10
+#服务端ip和端口
+  server:
+    host: 127.0.0.1
+    port: 8083
+#隧道信息，一条完整的外部>>服务端>>客户端>>被代理服务间的通路称为隧道
+tunnel:
+#tunnel示例，代理本地的mysql数据库服务和nacos服务
+    #服务端监听端口
+  - serverPort: 9000
+    #客户端连接的被代理服务端口
+    clientPort: 3306
+    #客户端连接的被代理服务端口
+    clientHost: 127.0.0.1
+  - serverPort: 9001
+    clientPort: 8848
+    clientHost: 127.0.0.1
+#接入请求的接入密码
+password: '123456'

@@ -1,7 +1,6 @@
 HELP.md
 netty-log/*
-target/
-!.mvn/wrapper/maven-wrapper.jar
+target/**
 !**/src/main/**
 !**/src/test/**
 mvnw*

@@ -1,0 +1,4 @@
+#内部通信使用的端口，需要与客户端的internal.server.port值保持一致
+internal:
+  server:
+    port: 8083
