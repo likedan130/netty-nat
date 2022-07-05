@@ -66,7 +66,7 @@
       ```
 3. **打包**  
     项目中使用maven管理第三方依赖，打包使用maven-jar-plugin，自定义打包行为定义在项目根目录的assembly.xml中，打包时执行：  
-    ```mvn clean package -Dmaven.test.skip=ture```
+    ```mvn clean package -Dmaven.test.skip=true```
 4. **部署**  
  项目打包后获得  项目名称-版本号.zip  
      解压后获得  
