@@ -108,6 +108,7 @@ public class YamlLoader extends AbstractLoader {
             }
         }catch(Exception e){
             e.printStackTrace();
+            log.error("在路径{}下查找配置文件发生异常:", path, e);
         }
         return null;
     }

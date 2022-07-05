@@ -34,3 +34,6 @@ build/
 
 ### VS Code ###
 .vscode/
+nat-client/target/
+nat-core/target/
+nat-server/target/

@@ -1,0 +1,8 @@
+﻿FROM openjdk:19-jdk
+ADD target/nat-client-1.0-SNAPSHOT.tar /
+#确保一下北京时间
+RUN /bin/cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+#默认开启log4j2全局异步日志，可以根据自己的需求进行调整
+ENV JAVA_OPTS="-Xms128M -Xmx4096M -Dog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
+ENV APP_OPTS=""
+ENTRYPOINT ["bash", "-c", "java $JAVA_OPTS -Duser.timezone=GMT+08 -jar /nat-client-1.0-SNAPSHOT/nat-client-1.0-SNAPSHOT.jar $APP_OPTS"]

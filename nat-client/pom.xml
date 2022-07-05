@@ -46,58 +46,7 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
-    <!--<build>-->
-        <!--&lt;!&ndash;配置执行main方法&ndash;&gt;-->
-        <!--<plugins>-->
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-shade-plugin</artifactId>-->
-                <!--<version>3.2.1</version>-->
-                <!--<configuration>-->
-                    <!--<createDependencyReducedPom>false</createDependencyReducedPom>-->
-                <!--</configuration>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<phase>package</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>shade</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<transformers>-->
-                                <!--<transformer-->
-                                        <!--implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
-                                    <!--<mainClass>client.InternalClient</mainClass>-->
-                                <!--</transformer>-->
-                            <!--</transformers>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
-        <!--</plugins>-->
-        <!--&lt;!&ndash;打包配置文件&ndash;&gt;-->
-        <!--<resources>-->
-            <!--<resource>-->
-                <!--<directory>src/main/resources</directory>-->
-                <!--<filtering>true</filtering>-->
-                <!--<includes>-->
-                    <!--<include>**/*</include>-->
-                <!--</includes>-->
-            <!--</resource>-->
-        <!--</resources>-->
-    <!--</build>-->
     <build>
-        <!--项目打包时不打包resources下面的yml，在外部创建config目录存放，
-        由于springboot特性，可执行jar包目录下的config目录中的配置文件优先级最高，
-        所以只需要在外部config目录中放置配置文件就可以优先被加载，方便修改配置-->
-        <!--<resources>-->
-        <!--<resource>-->
-        <!--<directory>src/main/resources</directory>-->
-        <!--<excludes>-->
-        <!--<exclude>*.yml</exclude>-->
-        <!--</excludes>-->
-        <!--</resource>-->
-        <!--</resources>-->
-        <!--jar包生成插件，在mainfest文件中添加classpath目录/libs-->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -108,7 +57,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
-                            <mainClass>client.InternalClient</mainClass>
+                            <mainClass>client.internal.InternalNettyClient</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -27,9 +27,11 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -68,7 +70,10 @@ public class InternalNettyClient extends BaseClient implements NettyClient {
 
     public static void main(String[] args) throws Exception {
         InternalNettyClient internalClient = new InternalNettyClient();
-        new YamlLoader().load(internalClient.getClass().getResource("/").getPath());
+        URL resources = internalClient.getClass().getResource("/");
+        new YamlLoader().load(Optional.ofNullable(resources)
+                .filter(res -> "file".equalsIgnoreCase(res.getProtocol()))
+                .map(URL::getPath).orElse(System.getProperty("user.dir")));
         internalClient.start();
         ClientChannelGroup.printGroupState();
     }

@@ -1,4 +1,4 @@
-# netty-nat
+# netty-nat ![image](https://img.shields.io/github/v/release/Likedan130/netty-nat.svg)
 
 基于netty的TCP/Http请求转发代理程序
 

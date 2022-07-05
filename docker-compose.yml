@@ -1,0 +1,21 @@
+﻿version: "3.8"
+
+services:
+  natServer:
+    build:
+      context: nat-server
+      dockerfile: DockerFile
+    image: netty-nat-server
+    container_name: netty-nat-server
+    ports:
+      #内部通信使用的端口，根据resources下properties.yml中配置internal.server.port自主调整
+      - 8083:8083
+      #隧道监听的外部端口，根据nat-client中tunnel配置自主调整
+      - 9000:9000
+      - 9001:9001
+  natClient:
+    build:
+      context: nat-client
+      dockerfile: DockerFile
+    image: netty-nat-client
+    container_name: netty-nat-client

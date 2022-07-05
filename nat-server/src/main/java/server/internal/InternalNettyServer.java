@@ -25,7 +25,10 @@ import core.netty.handler.MessageSendFilter;
 import core.netty.handler.MessageReceiveFilter;
 import server.internal.handler.processor.constant.ProcessorEnum;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,7 +51,10 @@ public class InternalNettyServer extends BaseServer implements NettyServer {
 
     public static void main(String[] args) throws Exception {
         InternalNettyServer internalNettyServer = new InternalNettyServer();
-        new YamlLoader().load(internalNettyServer.getClass().getResource("/").getPath());
+        URL resources = internalNettyServer.getClass().getResource("/");
+        new YamlLoader().load(Optional.ofNullable(resources)
+                .filter(res -> "file".equalsIgnoreCase(res.getProtocol()))
+                .map(URL::getPath).orElse(System.getProperty("user.dir")));
         int port = PropertiesCache.getInstance().getInt(PORT);
         internalNettyServer.start(port);
     }

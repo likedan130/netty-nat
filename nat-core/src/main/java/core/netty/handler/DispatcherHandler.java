@@ -1,10 +1,19 @@
 package core.netty.handler;
 
+import core.constant.FrameConstant;
+import core.entity.Frame;
+import core.entity.Tunnel;
+import core.netty.group.ServerChannelGroup;
+import core.netty.group.channel.strategy.constant.ForkStrategyEnum;
+import core.utils.ByteUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -34,6 +43,21 @@ public abstract class DispatcherHandler extends ByteToMessageDecoder {
         }
         channelHandlerContext.pipeline().remove(this);
     }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().localAddress();
+        log.debug("{}:{}收到新的连接请求", inetSocketAddress.getHostName(), inetSocketAddress.getPort());
+        ServerChannelGroup.addProxy(ctx.channel());
+        //新的连接建立后进行配对
+        fullyConnect(ctx);
+        ServerChannelGroup.printGroupState();
+    }
+
+    /**
+     * 外部请求与ProxyServer激活channel连接时，通知ProxyClient与被代理服务预建立连接
+     */
+    public abstract void fullyConnect(ChannelHandlerContext ctx) throws Exception;
 
     /**
      * 配置http请求的pipeline

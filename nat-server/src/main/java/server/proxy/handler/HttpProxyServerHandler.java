@@ -23,7 +23,7 @@ public class HttpProxyServerHandler extends SimpleChannelInboundHandler<FullHttp
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
         //处理100 continue请求
         if (is100ContinueExpected(msg)) {
-            ctx.write(new DefaultFullHttpResponse(
+            ctx.writeAndFlush(new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1,
                     HttpResponseStatus.CONTINUE));
         }
