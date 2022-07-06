@@ -76,8 +76,11 @@
  - 项目配置文件目录  config  
  将解压后文件及目录保持当前层级关系上传至服务器
 5. **启动**  
-    进入项目根目录  
-    调整config目录下的log4j.properties为当前服务器相关配置
-    运行```java -Dlog4j.configuration=file:./config/log4j.properties -jar nat-server-1.0-SNAPSHOT.jar & ```启动服务端  
+    - 直接运行jar  
+    调整resources目录下的log4j2.xml和properties.yml为当前服务器相关配置，执行打包编译流程，获得target目录下的tar文件并解压
+    运行```java -jar nat-server-1.0-SNAPSHOT.jar & ```启动服务端  
     观察到 InternalServer started on port xxxx......即表示服务启动成功  
-    运行```java -Dlog4j.configuration=file:./config/log4j.properties -jar nat-client-1.0-SNAPSHOT.jar & ```启动客户端  
+    运行```java -jar nat-client-1.0-SNAPSHOT.jar & ```启动客户端  
+    - docker启动
+    调整resources目录下的log4j2.xml和properties.yml为当前服务器相关配置，执行打包编译流程
+    命令行执行docker-compose up -d，在docker中确认容器的运行情况
