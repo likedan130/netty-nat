@@ -1,4 +1,4 @@
-﻿FROM openjdk:19-jdk
+﻿FROM bboysoul/oracle-jdk8:8u311
 ADD target/nat-server-1.0-SNAPSHOT.tar /
 #确保一下北京时间
 RUN /bin/cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
