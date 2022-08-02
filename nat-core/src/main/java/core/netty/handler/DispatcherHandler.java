@@ -39,7 +39,7 @@ public abstract class DispatcherHandler extends ByteToMessageDecoder {
             addHttpHandler(channelHandlerContext);
         } else {
             log.info("this is a socket msg");
-//            addTcpHandler(channelHandlerContext);
+            addTcpHandler(channelHandlerContext);
         }
         channelHandlerContext.pipeline().remove(this);
     }

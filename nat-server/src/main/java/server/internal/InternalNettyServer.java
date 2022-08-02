@@ -17,6 +17,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import server.internal.decoder.ByteToPojoDecoder;
 import server.internal.decoder.PojoToByteEncoder;
 import server.internal.handler.CustomEventHandler;
@@ -113,12 +115,13 @@ public class InternalNettyServer extends BaseServer implements NettyServer {
                     .childHandler(channelInit)
                     .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
 
+            log.error("InternalServer started on port {}......", cache.getInt(PORT));
             nioServerFuture = b.bind(cache.getInt(PORT)).sync();
-            log.debug("InternalServer started on port {}......", cache.getInt(PORT));
             //添加关闭重启的监听器，3秒后尝试重启
             nioServerFuture.addListener(genericFutureListener);
             nioServerFuture.channel().closeFuture().sync();
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("InternalServer started failed while listening on port {}！！！", cache.getInt(PORT), e);
         }
     }

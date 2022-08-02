@@ -44,6 +44,7 @@ public class ProxyNettyClient extends BaseClient implements NettyClient{
                                     .addLast(new ProxyClientHandler());
                         }
                     });
+            log.debug("启动ProxyClient连接到{}：{}", host, port);
             future = client.connect(host, port).sync();
         } catch (Exception e) {
             log.error("启动ProxyClient连接到失败");
