@@ -1,6 +1,3 @@
-/**
- * Copyright (c) 2017 hadlinks, All Rights Reserved.
- */
 package core.properties.cache;
 
 import java.util.List;
@@ -9,13 +6,13 @@ import java.util.concurrent.*;
 import core.utils.ByteUtil;
 
 /**
- * Project Name: huamei-farm
+ * Project Name: nat-core
  * Package Name: core.properties.cache
  * ClassName: PropertiesCache
  * Function: 缓存项目的全局配置信息.
  * date: 2017/3/15 10:53
  *
- * @author songwei (songw@hadlinks.com)
+ * @author wneck130@gmail.com
  * @since JDK 1.8
  */
 public class PropertiesCache {

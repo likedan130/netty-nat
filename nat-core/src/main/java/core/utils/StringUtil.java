@@ -1,7 +1,3 @@
-/*
- * Copyright (c) www.bugull.com
- */
-
 package core.utils;
 
 import io.netty.channel.Channel;
@@ -12,7 +8,7 @@ import java.util.Random;
 
 /**
  *
- * @author Frank Wen(xbwen@hotmail.com)
+ * @author wneck130@gmail.com
  */
 public final class StringUtil {
 

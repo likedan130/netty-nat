@@ -71,7 +71,8 @@ public class InternalNettyClient extends BaseClient implements NettyClient {
     public static void main(String[] args) throws Exception {
         InternalNettyClient internalClient = new InternalNettyClient();
         URL resources = internalClient.getClass().getResource("/");
-        new YamlLoader().load(Optional.ofNullable(resources)
+        // 根据运行方式获取配置文件根路径
+        new YamlLoader("properties.yml").load(Optional.ofNullable(resources)
                 .filter(res -> "file".equalsIgnoreCase(res.getProtocol()))
                 .map(URL::getPath).orElse(System.getProperty("user.dir")));
         internalClient.start();

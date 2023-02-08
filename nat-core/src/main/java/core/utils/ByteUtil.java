@@ -1,11 +1,8 @@
-/*
- * Copyright (c) www.bugull.com
- */
 package core.utils;
 
 /**
  *
- * @author Frank Wen(xbwen@hotmail.com)
+ * @author wneck130@gmail.com
  */
 public final class ByteUtil {
     

@@ -7,7 +7,6 @@ import core.properties.filewatch.FileWatchService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,6 +21,10 @@ public class YamlLoader extends AbstractLoader {
 
     private static final String EXTENDTION = ".";
 
+    public YamlLoader(String... targetFilenames) {
+        super(targetFilenames);
+    }
+
     @Override
     public void load(String path) throws Exception {
         //读取文件
@@ -31,9 +34,7 @@ public class YamlLoader extends AbstractLoader {
         }
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         Map<String, Object> origin = mapper.readValue(propFile, Map.class);
-        unfold(origin).forEach((key, value) -> {
-            PropertiesCache.getInstance().getProps().putIfAbsent(key, value);
-        });
+        unfold(origin).forEach((key, value) -> PropertiesCache.getInstance().getProps().putIfAbsent(key, value));
         //加载完成后，启动一个FileWatchService来对文件修改状态进行监控，如果监听到文件修改，则重新加载修改后的文件内容
         addWatch(propFile.getParent());
     }
@@ -46,10 +47,8 @@ public class YamlLoader extends AbstractLoader {
             throw new Exception("无法加载配置文件!!!");
         }
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        Map<String, Object> origin = mapper.readValue(new File(path), Map.class);
-        unfold(origin).forEach((key, value) -> {
-            PropertiesCache.getInstance().getProps().putIfAbsent(key, value);
-        });
+        Map<String, Object> origin = mapper.readValue(propFile, Map.class);
+        unfold(origin).forEach((key, value) -> PropertiesCache.getInstance().getProps().putIfAbsent(key, value));
     }
 
     /**

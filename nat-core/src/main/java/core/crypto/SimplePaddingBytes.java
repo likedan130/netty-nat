@@ -1,7 +1,3 @@
-/*
- * Copyright (c) www.bugull.com
- */
-
 package core.crypto;
 
 import java.util.Arrays;
@@ -9,7 +5,7 @@ import java.util.Arrays;
 /**
  * PaddingBytes for LSD company.
  * 
- * @author Frank Wen(xbwen@hotmail.com)
+ * @author wneck130@gmail.com
  */
 public class SimplePaddingBytes implements PaddingBytes {
     

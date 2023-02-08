@@ -1,7 +1,3 @@
-/*
- * Copyright (c) www.bugull.com
- */
-
 package core.utils;
 
 import java.util.concurrent.ExecutorService;
@@ -9,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  *
- * @author Frank Wen(xbwen@hotmail.com)
+ * @author wneck130@gmail.com
  */
 public class ThreadUtil {
     

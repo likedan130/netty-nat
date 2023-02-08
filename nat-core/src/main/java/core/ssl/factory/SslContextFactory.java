@@ -1,6 +1,3 @@
-/**
- * Copyright (c) 2017 hadlinks, All Rights Reserved.
- */
 package core.ssl.factory;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -10,12 +7,12 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 
 /**
- * Project Name: bugu-farm-household 
+ * Project Name: nat-core 
  * Package Name: core.factory
  * ClassName: SslContextFactory 
  * Function: TODO ADD FUNCTION.  
  * date: 2017/4/24 16:24
- * @author songwei (songw@hadlinks.com)
+ * @author wneck130@gmail.com
  * @since JDK 1.8 
  */
 public class SslContextFactory {

@@ -1,7 +1,3 @@
-/*
- * Copyright (c) www.bugull.com
- */
-
 package core.crypto;
 
 import java.security.AlgorithmParameters;
@@ -20,7 +16,7 @@ import org.apache.logging.log4j.*;
 /**
  * AES128 encryptor and decryptor. Code copied from bugu-droid.
  * 
- * @author Frank Wen(xbwen@hotmail.com)
+ * @author wneck130@gmail.com
  */
 public class Crypto {
     

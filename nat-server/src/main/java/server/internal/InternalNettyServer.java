@@ -54,7 +54,8 @@ public class InternalNettyServer extends BaseServer implements NettyServer {
     public static void main(String[] args) throws Exception {
         InternalNettyServer internalNettyServer = new InternalNettyServer();
         URL resources = internalNettyServer.getClass().getResource("/");
-        new YamlLoader().load(Optional.ofNullable(resources)
+        // 根据运行方式获取配置文件根路径
+        new YamlLoader("properties.yml").load(Optional.ofNullable(resources)
                 .filter(res -> "file".equalsIgnoreCase(res.getProtocol()))
                 .map(URL::getPath).orElse(System.getProperty("user.dir")));
         int port = PropertiesCache.getInstance().getInt(PORT);

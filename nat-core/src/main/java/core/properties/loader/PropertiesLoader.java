@@ -1,35 +1,34 @@
-/**
- * Project Name: farm-core
- * File Name: PropertiesLoader.java
- * Package Name: core.frame.loader
- * Date: 2017年3月20日上午10:47:55
- * Copyright (c) 2017, hadlinks All Rights Reserved.
- */
 package core.properties.loader;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.logging.log4j.*;
 
 import core.properties.cache.PropertiesCache;
 import core.properties.filewatch.FileWatchService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * ClassName: PropertiesLoader
  * Function: 加载.properties的配置文件加载器，.
  * date: 2017年3月20日 上午10:47:55
  *
- * @author songwei (songw@hadlinks.com)
+ * @author wneck130@gmail.com
  * @version
  * @since JDK 1.8
  */
 public class PropertiesLoader extends AbstractLoader {
 
     private final Logger logger = LogManager.getLogger(PropertiesLoader.class);
+
+    public PropertiesLoader(String... targetFilenames) {
+        super(targetFilenames);
+    }
 
     @Override
     public void load(String path) throws Exception {
